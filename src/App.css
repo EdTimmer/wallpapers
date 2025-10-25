@@ -1,0 +1,38 @@
+#root {
+  padding: 0;
+  margin: 0;
+}
+
+
+
+.app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+
+}
+
+.wallpaper-a {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  color: white;
+}
+
+.wallpaper-b {
+  position: absolute;
+  top: 10px;
+  left: 40px;
+  z-index: 10;
+  color: white;
+}
+
+.wallpaper-c {
+  position: absolute;
+  top: 10px;
+  left: 70px;
+  z-index: 10;
+  color: white;
+}
