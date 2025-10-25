@@ -8,6 +8,12 @@ uniform float uNoiseScale; // 2.0
 uniform float uNoiseTimeScale;
 uniform float uOpacity;
 
+uniform vec2 uClickPoints[10];
+uniform float uClickStrengths[10];
+uniform int uClickCount;
+uniform float uDistortionRadius;
+uniform float uDistortionStrength;
+
 varying vec2 vUv;
 varying vec2 vUv0;
 
@@ -29,7 +35,7 @@ vec4 mod289(vec4 x) {
 }
 
 vec4 permute(vec4 x) {
-  return mod289(((x * 34.0) + 1.0) * x);
+  return mod289(((x * 14.0) + 1.0) * x);  // x * 34.0 changed to 14.0
 }
 
 vec4 taylorInvSqrt(vec4 r) {
@@ -112,10 +118,10 @@ float fbm3(vec3 v) {
 float fbm5(vec3 v) {
     float result = simplex(v);
     result += simplex(v * 2.0) / 2.0;
-    // result += simplex(v * 4.0) / 4.0;
+    result += simplex(v * 4.0) / 4.0;
     // result += simplex(v * 8.0) / 8.0;
     // result += simplex(v * 16.0) / 16.0;
-    result /= (1.0 + 1.0/2.0 + 1.0/4.0 + 1.0/8.0 + 1.0/16.0);
+    result /= (1.0 + 1.0/2.0 + 1.0/4.0);
     return result;
 }
 
@@ -136,8 +142,30 @@ void main() {
 //   vec2 uv = fragCoord / iResolution.xy;
 //   vec2 vUv = fragCoord
 
+  // Apply distortion from click points
+  vec2 distortedUv = vUv;
+  
+  for(int i = 0; i < 10; i++) {
+    if(i >= uClickCount) break;
+    
+    vec2 toPixel = vUv - uClickPoints[i];
+    float dist = length(toPixel);
+    
+    // Add a minimum distance to avoid singularity at click point
+    float safeDist = max(dist, 0.01);
+    
+    float influence = smoothstep(uDistortionRadius, 0.0, dist);
+    influence *= uClickStrengths[i];
+    
+    // Use safeDist and smoother falloff to avoid sharp point
+    float distortAmount = influence * uDistortionStrength * 2.0;
+    float smoothFalloff = smoothstep(0.0, uDistortionRadius, safeDist);
+    
+    distortedUv -= normalize(toPixel) * distortAmount * smoothFalloff;
+  }
+
   // Use uTime instead of iTime for the time-based component
-  float noise = getNoise(vec3(vUv * uNoiseScale, uTime * uNoiseTimeScale));
+  float noise = getNoise(vec3(distortedUv * uNoiseScale, uTime * uNoiseTimeScale));
   // Enhance contrast (noise raised to the fourth power, then scaled)
   noise = pow(noise, 4.0) * 2.0;
   

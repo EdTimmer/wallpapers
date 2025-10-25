@@ -11,14 +11,14 @@ function App() {
   const renderNoise = () => {
     switch (activeNoise) {
       case 'A':
-        return <NoiseA />
+        return <CellsA />
       case 'B':
         return <NoiseB />
       // Add more cases here as you create more Noise components
       // case 'C':
       //   return <NoiseC />
       default:
-        return <CellsA />
+        return <NoiseA />
     }
   }
 

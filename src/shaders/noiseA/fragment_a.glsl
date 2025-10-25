@@ -48,18 +48,47 @@ float cnoise(vec2 P) {
   float n11 = dot(g11, vec2(fx.w, fy.w));
   vec2 fade_xy = fade(Pf.xy);
   vec2 n_x = mix(vec2(n00, n01), vec2(n10, n11), fade_xy.x);
-  float n_xy = mix(n_x.x, n_x.y, fade_xy.y);
+  float n_xy = mix(n_x.x, n_x.y, fade_xy.y) * sin(uTime * 0.06); // Animate noise over time
   return 2.3 * n_xy;
 }
 
 void main() {
   // PERLIN NOISE - OIL FILM EFFECT
+  
+  // Apply distortion from click points
+  vec2 distortedUv = vUv;
+  
+  for(int i = 0; i < 10; i++) {
+    if(i >= uClickCount) break;
+    
+    // Calculate vector from click point to current pixel
+    vec2 toPixel = vUv - uClickPoints[i];
+    float dist = length(toPixel);
+    
+    // Add a minimum distance to avoid singularity at click point
+    float safeDist = max(dist, 0.01);
+    
+    // Create a smooth falloff using uniform blob size
+    float influence = smoothstep(uBlobSize, 0.0, dist);
+    
+    // Apply the strength (for fade-out animation)
+    influence *= uClickStrengths[i];
+    
+    // Subtle distortion - much smaller multiplier for gentle perturbation
+    float distortAmount = influence * uBlobIntensity * 2.0;
+    
+    // Use safeDist and smoother falloff to avoid sharp point
+    float smoothFalloff = smoothstep(0.0, uBlobSize, safeDist);
+    
+    // Apply subtle radial perturbation (push OUTWARD to spread curves slightly)
+    distortedUv -= normalize(toPixel) * distortAmount * smoothFalloff;
+  }
 
   // sharp
   // float strength = step(0.5, sin((cnoise(vUv * 10.0) + uTime * 0.1 )* 20.0));
 
-  // smooth
-  float strength = sin((cnoise(vUv * uNoise) + uTime * uSpeed * -1.0 ) * uOscillationFrequency);
+  // smooth - now using distorted UV
+  float strength = sin((cnoise(distortedUv * uNoise) + uTime * uSpeed * -1.0 ) * uOscillationFrequency);
 
   // clamp the strength
   strength = clamp(strength, 0.0, 1.0); // 0.06
@@ -74,29 +103,6 @@ void main() {
   // Gray
   // vec3 secondColor = vec3(0.054, 0.058, 0.062); // 0.086, 0.537, 0
   vec3 mixedColor = mix(firstColor, secondColor, strength);
-  
-  // Add click point blobs
-  float clickInfluence = 0.0;
-  
-  for(int i = 0; i < 10; i++) {
-    if(i >= uClickCount) break;
-    
-    // Calculate distance from current pixel to click point
-    float dist = distance(vUv, uClickPoints[i]);
-    
-    // Create a smooth falloff using uniform blob size
-    float blob = smoothstep(uBlobSize, 0.0, dist);
-    
-    // Apply the strength (for fade-out animation)
-    blob *= uClickStrengths[i];
-    
-    // Accumulate influence from all clicks
-    clickInfluence = max(clickInfluence, blob);
-  }
-  
-  // Mix in the click color using uniform color and intensity
-  vec3 scaledBlobColor = uBlobColor * uBlobIntensity;
-  mixedColor = mix(mixedColor, scaledBlobColor, clickInfluence);
   
   gl_FragColor = vec4(mixedColor, 1.0);
 
