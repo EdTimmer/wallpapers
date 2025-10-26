@@ -15,8 +15,8 @@ function App() {
       case 'B':
         return <NoiseB />
       // Add more cases here as you create more Noise components
-      // case 'C':
-      //   return <NoiseC />
+      case 'C':
+        return <NoiseA />
       default:
         return <NoiseA />
     }
@@ -25,9 +25,30 @@ function App() {
   return (
     <>
       <div className="app-container">
-        <div className="wallpaper-a" onClick={() => setActiveNoise('A')} style={{ cursor: 'pointer' }}>A</div>
-        <div className="wallpaper-b" onClick={() => setActiveNoise('B')} style={{ cursor: 'pointer' }}>B</div>
-        <div className="wallpaper-c" onClick={() => setActiveNoise('C')} style={{ cursor: 'pointer' }}>C</div>
+        <div 
+          className="wallpaper-a" 
+          onClick={() => setActiveNoise('A')} 
+          style={{ cursor: 'pointer', textDecoration: activeNoise === 'A' ? 'underline' : 'none' }}
+        >
+          Wallpaper A
+        </div>
+        <div 
+          className="wallpaper-b" 
+          onClick={() => setActiveNoise('B')} 
+          style={{ cursor: 'pointer', textDecoration: activeNoise === 'B' ? 'underline' : 'none' }}
+        >
+          Wallpaper B
+        </div>
+        <div 
+          className="wallpaper-c" 
+          onClick={() => setActiveNoise('C')} 
+          style={{ cursor: 'pointer', textDecoration: activeNoise === 'C' ? 'underline' : 'none' }}
+        >
+          Wallpaper C
+        </div>
+        <div className="instructions">
+          Use mouse interactions for effects
+        </div>
         <Canvas orthographic camera={{ position: [0, 0, 1], zoom: 20, far: 6 }}>
             {/* Camera will automatically look at the center [0,0,0] when using Canvas camera prop */}
             {/* <Snowflake scale={0.25} position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]} /> */}

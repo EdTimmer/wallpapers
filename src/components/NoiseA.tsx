@@ -20,18 +20,22 @@ export default function NoiseA() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    uNoise: 4.0,
-    uSpeed: 0.016,
+    uNoise: 0.1,
+    uSpeed: 0.06,
     uOscillationFrequency: 82.0,
+    uIntensity: 0.1,
+    uSecondColor: '#9a638e', // Hex color
     fadeSpeed: 0.5,
-    distortionRadius: 0.15,
-    distortionStrength: 0.02
+    distortionRadius: 0.1,
+    distortionStrength: 0.3
   }
 
-  const [{ uNoise, uSpeed, uOscillationFrequency, fadeSpeed, distortionRadius, distortionStrength }, set] = useControls(() => ({
+  const [{ uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, fadeSpeed, distortionRadius, distortionStrength }, set] = useControls(() => ({
     uNoise: { value: DEFAULTS.uNoise, min: 0, max: 50, step: 0.1 },
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 2, step: 0.01 },
     uOscillationFrequency: { value: DEFAULTS.uOscillationFrequency, min: 0, max: 100, step: 1 },
+    uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 1, step: 0.01 },
+    uSecondColor: { value: DEFAULTS.uSecondColor },
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
     distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01 },
     distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001 },
@@ -44,6 +48,8 @@ export default function NoiseA() {
       uNoise: { value: uNoise },
       uSpeed: { value: uSpeed },
       uOscillationFrequency: { value: uOscillationFrequency },
+      uIntensity: { value: uIntensity },
+      uSecondColor: { value: [0.525, 0.992, 0.866] },
       uClickPoints: { value: Array(10).fill(new Vector2(0, 0)) },
       uClickStrengths: { value: Array(10).fill(0) },
       uClickCount: { value: 0 },
@@ -122,10 +128,19 @@ export default function NoiseA() {
       materialRef.current.uniforms.uNoise.value = uNoise
       materialRef.current.uniforms.uSpeed.value = uSpeed
       materialRef.current.uniforms.uOscillationFrequency.value = uOscillationFrequency
+      materialRef.current.uniforms.uIntensity.value = uIntensity
+      
+      // Convert hex to RGB array (0-1 range)
+      const hex = uSecondColor.replace('#', '')
+      const r = parseInt(hex.substring(0, 2), 16) / 255
+      const g = parseInt(hex.substring(2, 4), 16) / 255
+      const b = parseInt(hex.substring(4, 6), 16) / 255
+      materialRef.current.uniforms.uSecondColor.value = [r, g, b]
+      
       materialRef.current.uniforms.uBlobSize.value = distortionRadius
       materialRef.current.uniforms.uBlobIntensity.value = distortionStrength
     }
-  }, [uNoise, uSpeed, uOscillationFrequency, distortionRadius, distortionStrength])
+  }, [uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, distortionRadius, distortionStrength])
 
   useFrame(({ clock }, delta) => {
     if (materialRef.current) {

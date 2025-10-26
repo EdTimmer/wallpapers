@@ -19,19 +19,26 @@ export default function CellsA() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    resolutionX: 1920,
-    resolutionY: 3000,
-    animationSpeed: 0.5,
-    fadeSpeed: 0.5,
-    clickColor: '#ff0000'
+    'Res X': 1920,
+    'Res Y': 3000,
+    'Anim Speed': 0.5,
+    'Fade Speed': 0.5,
+    'Click': '#ff00fd',
+    'Click Intensity': 0.3,
+    'Base': '#33cc80',
+    'Base Intensity': 0.3
   }
 
-  const [{ resolutionX, resolutionY, animationSpeed, fadeSpeed, clickColor }, set] = useControls('CellsA', () => ({
-    resolutionX: { value: DEFAULTS.resolutionX, min: 100, max: 4000, step: 10 },
-    resolutionY: { value: DEFAULTS.resolutionY, min: 100, max: 4000, step: 10 },
-    animationSpeed: { value: DEFAULTS.animationSpeed, min: 0, max: 5, step: 0.1 },
-    fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
-    clickColor: { value: DEFAULTS.clickColor },
+  const [{ 'Res X': resolutionX, 'Res Y': resolutionY, 'Anim Speed': animationSpeed, 'Fade Speed': fadeSpeed, Base: baseColor, 'Base Intensity': colorIntensity, Click: clickColor, 'Click Intensity': clickColorIntensity }, set] = useControls('CellsA', () => ({
+    'Res X': { value: DEFAULTS['Res X'], min: 100, max: 4000, step: 10 },
+    'Res Y': { value: DEFAULTS['Res Y'], min: 100, max: 4000, step: 10 },
+    'Anim Speed': { value: DEFAULTS['Anim Speed'], min: 0, max: 5, step: 0.1 },
+    'Base': { value: DEFAULTS['Base'] },    
+    'Base Intensity': { value: DEFAULTS['Base Intensity'], min: 0, max: 1, step: 0.01 },
+    'Click': { value: DEFAULTS['Click'] },
+    'Click Intensity': { value: DEFAULTS['Click Intensity'], min: 0, max: 1, step: 0.01 },
+    'Fade Speed': { value: DEFAULTS['Fade Speed'], min: 0.1, max: 3, step: 0.1 },
+    
     'Reset All': button(() => set(DEFAULTS))
   }))
 
@@ -42,7 +49,10 @@ export default function CellsA() {
       uClickedCells: { value: Array(20).fill(new Vector2(0, 0)) },
       uClickStrengths: { value: Array(20).fill(0) },
       uClickCount: { value: 0 },
-      uClickColor: { value: [1.0, 0.0, 0.0] }
+      uClickColor: { value: [1.0, 0.0, 0.0] },
+      uColorIntensity: { value: 0.3 },
+      uClickColorIntensity: { value: 0.3 },
+      uBaseColor: { value: [0.2, 0.8, 0.5] }
     }),
     []
   )
@@ -142,14 +152,24 @@ export default function CellsA() {
     if (materialRef.current) {
       materialRef.current.uniforms.resolution.value = new Vector2(resolutionX, resolutionY)
       
-      // Convert hex color to RGB array (0-1 range)
-      const hex = clickColor.replace('#', '')
-      const r = parseInt(hex.substring(0, 2), 16) / 255
-      const g = parseInt(hex.substring(2, 4), 16) / 255
-      const b = parseInt(hex.substring(4, 6), 16) / 255
-      materialRef.current.uniforms.uClickColor.value = [r, g, b]
+      // Convert click color hex to RGB array (0-1 range)
+      const clickHex = clickColor.replace('#', '')
+      const cr = parseInt(clickHex.substring(0, 2), 16) / 255
+      const cg = parseInt(clickHex.substring(2, 4), 16) / 255
+      const cb = parseInt(clickHex.substring(4, 6), 16) / 255
+      materialRef.current.uniforms.uClickColor.value = [cr, cg, cb]
+      
+      // Convert base color hex to RGB array (0-1 range)
+      const baseHex = baseColor.replace('#', '')
+      const br = parseInt(baseHex.substring(0, 2), 16) / 255
+      const bg = parseInt(baseHex.substring(2, 4), 16) / 255
+      const bb = parseInt(baseHex.substring(4, 6), 16) / 255
+      materialRef.current.uniforms.uBaseColor.value = [br, bg, bb]
+      
+      materialRef.current.uniforms.uColorIntensity.value = colorIntensity
+      materialRef.current.uniforms.uClickColorIntensity.value = clickColorIntensity
     }
-  }, [resolutionX, resolutionY, clickColor])
+  }, [resolutionX, resolutionY, clickColor, colorIntensity, clickColorIntensity, baseColor])
 
   useFrame((state, delta) => {
     if (materialRef.current) {

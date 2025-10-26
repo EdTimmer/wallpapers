@@ -10,6 +10,8 @@ uniform int uClickCount; // Number of active clicks
 uniform float uBlobSize; // Size of click blobs
 uniform vec3 uBlobColor; // Color of click blobs
 uniform float uBlobIntensity; // Intensity/brightness of blob color
+uniform float uIntensity; // Color intensity multiplier
+uniform vec3 uSecondColor; // Second color for the gradient
 
 varying vec2 vUv;
 
@@ -48,47 +50,82 @@ float cnoise(vec2 P) {
   float n11 = dot(g11, vec2(fx.w, fy.w));
   vec2 fade_xy = fade(Pf.xy);
   vec2 n_x = mix(vec2(n00, n01), vec2(n10, n11), fade_xy.x);
-  float n_xy = mix(n_x.x, n_x.y, fade_xy.y) * sin(uTime * 0.06); // Animate noise over time
+  float n_xy = mix(n_x.x, n_x.y, fade_xy.y); // Animate noise over time
   return 2.3 * n_xy;
+}
+
+// Fractional Brownian Motion - layers multiple octaves of noise
+float fbm(vec2 p) {
+  float value = 0.0;
+  float amplitude = 0.5;
+  float frequency = 1.0;
+  
+  // Add 4 octaves of noise
+  for(int i = 0; i < 4; i++) {
+    value += amplitude * cnoise(p * frequency);
+    frequency *= 2.0;  // Each octave has double the frequency
+    amplitude *= 0.5;  // Each octave has half the amplitude
+  }
+  
+  return value;
+}
+
+// Domain warping - feed noise into itself for organic patterns
+vec2 domainWarp(vec2 p, float time) {
+  vec2 q = vec2(fbm(p + vec2(0.0, 0.0)),
+                fbm(p + vec2(5.2, 1.3)));
+  
+  vec2 r = vec2(fbm(p + 4.0 * q + vec2(1.7 - time * 0.15, 9.2)),
+                fbm(p + 4.0 * q + vec2(8.3 - time * 0.1, 2.8)));
+  
+  return p + r;
 }
 
 void main() {
   // PERLIN NOISE - OIL FILM EFFECT
   
-  // Apply distortion from click points
+  // Apply spherical lens distortion from click points (same as NoiseB)
   vec2 distortedUv = vUv;
   
   for(int i = 0; i < 10; i++) {
     if(i >= uClickCount) break;
     
-    // Calculate vector from click point to current pixel
-    vec2 toPixel = vUv - uClickPoints[i];
-    float dist = length(toPixel);
+    // Skip points with negligible strength
+    if(uClickStrengths[i] < 0.1) continue;
     
-    // Add a minimum distance to avoid singularity at click point
-    float safeDist = max(dist, 0.01);
+    vec2 toClick = distortedUv - uClickPoints[i];
+    float dist = length(toClick);
     
-    // Create a smooth falloff using uniform blob size
-    float influence = smoothstep(uBlobSize, 0.0, dist);
-    
-    // Apply the strength (for fade-out animation)
-    influence *= uClickStrengths[i];
-    
-    // Subtle distortion - much smaller multiplier for gentle perturbation
-    float distortAmount = influence * uBlobIntensity * 2.0;
-    
-    // Use safeDist and smoother falloff to avoid sharp point
-    float smoothFalloff = smoothstep(0.0, uBlobSize, safeDist);
-    
-    // Apply subtle radial perturbation (push OUTWARD to spread curves slightly)
-    distortedUv -= normalize(toPixel) * distortAmount * smoothFalloff;
+    // Only apply within radius
+    if (dist < uBlobSize && dist > 0.0001) {
+      // Smooth falloff
+      float normalizedDist = dist / uBlobSize;
+      float falloff = 1.0 - normalizedDist;
+      falloff = smoothstep(0.0, 1.0, falloff);
+      
+      // Strength fade-out
+      float strengthFalloff = smoothstep(0.0, 0.2, uClickStrengths[i]);
+      
+      // Spherical lens distortion (magnify/pinch based on sign)
+      float lensStrength = falloff * strengthFalloff * uClickStrengths[i] * uBlobIntensity;
+      
+      // Radial displacement (negative = magnify, positive = pinch)
+      vec2 direction = normalize(toClick);
+      distortedUv = uClickPoints[i] + direction * (dist - dist * lensStrength * 3.0);
+    }
   }
 
   // sharp
   // float strength = step(0.5, sin((cnoise(vUv * 10.0) + uTime * 0.1 )* 20.0));
 
-  // smooth - now using distorted UV
-  float strength = sin((cnoise(distortedUv * uNoise) + uTime * uSpeed * -1.0 ) * uOscillationFrequency);
+  // Apply domain warping for more interesting patterns
+  vec2 warpedUv = domainWarp(distortedUv * uNoise, uTime * uSpeed);
+  
+  // Use fBm instead of simple noise for more detail
+  float strength = fbm(warpedUv);
+  
+  // Add some oscillation based on time
+  strength = sin(strength * uOscillationFrequency + uTime * uSpeed * -0.5);
 
   // clamp the strength
   strength = clamp(strength, 0.0, 1.0); // 0.06
@@ -99,7 +136,7 @@ void main() {
   // vec3 secondColor = vec3(0.133, 0, 0.239) * 0.2; // Scale down intensity
 
   // Light purple
-  vec3 secondColor = vec3(0.525, 0.992, 0.866) * 0.01; // Scale down intensity
+  vec3 secondColor = uSecondColor * uIntensity; // Scale down intensity
   // Gray
   // vec3 secondColor = vec3(0.054, 0.058, 0.062); // 0.086, 0.537, 0
   vec3 mixedColor = mix(firstColor, secondColor, strength);

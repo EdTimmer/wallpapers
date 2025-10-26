@@ -6,6 +6,9 @@ uniform vec2 uClickedCells[20];
 uniform float uClickStrengths[20];
 uniform int uClickCount;
 uniform vec3 uClickColor;
+uniform float uColorIntensity;
+uniform float uClickColorIntensity;
+uniform vec3 uBaseColor;
 
 vec3 red = vec3(1.0, 0.0, 0.0);
 vec3 blue = vec3(0.0, 0.0, 1.0);
@@ -37,7 +40,7 @@ void main() {
   float cellIntensity = t * t * t * (t * (t * 6.0 - 15.0) + 10.0); // Smootherstep quintic
   
   // Base color with varying intensity
-  vec3 colour = vec3(0.2, 0.8, 0.5) * cellIntensity * 0.1;
+  vec3 colour = uBaseColor * cellIntensity * uColorIntensity;
   
   // Check if this cell has been clicked
   float clickInfluence = 0.0;
@@ -52,7 +55,7 @@ void main() {
   
   // Mix in click color if this cell was clicked
   if(clickInfluence > 0.0) {
-    colour = mix(colour, uClickColor * 0.3, clickInfluence);
+    colour = mix(colour, uClickColor * uClickColorIntensity, clickInfluence);
   }
 
   // float cellLine = smoothstep(0.0, 0.5, distToCell);

@@ -20,30 +20,39 @@ export default function NoiseB() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    Steps: 3,
-    Swirl: 1.0,
-    Scale: 2.0,
-    Time: 0.02,
+    Scale: 10.0,
+    RotationSpeed: 0.05,
+    FBMAmplitude: 0.5,
+    FBMPersistence: 0.5,
+    GapMix: 0.5,
+    ContrastPower: 0.4,
+    FinalPower: 4.0,
     Opacity: 0.6,
-    fadeSpeed: 0.5,
-    distortionRadius: 0.15,
-    distortionStrength: 0.02
+    fadeSpeed: 3.0,
+    distortionRadius: 0.06,
+    distortionStrength: 0.25
   }
 
   const [{ 
-    Steps: uNoiseSwirlSteps,
-    Swirl: uNoiseSwirlValue,
     Scale: uNoiseScale,
-    Time: uNoiseTimeScale,
+    RotationSpeed: uRotationSpeed,
+    FBMAmplitude: uFBMAmplitude,
+    FBMPersistence: uFBMPersistence,
+    GapMix: uGapMix,
+    ContrastPower: uContrastPower,
+    FinalPower: uFinalPower,
     Opacity: uOpacity,
     fadeSpeed,
     distortionRadius,
     distortionStrength
   }, set] = useControls('NoiseB', () => ({
-    Steps: { value: DEFAULTS.Steps, min: 0, max: 20, step: 1 },
-    Swirl: { value: DEFAULTS.Swirl, min: 0, max: 5, step: 0.1 },
-    Scale: { value: DEFAULTS.Scale, min: 0.1, max: 10, step: 0.1 },
-    Time: { value: DEFAULTS.Time, min: 0, max: 2, step: 0.01 },
+    Scale: { value: DEFAULTS.Scale, min: 0.1, max: 20, step: 0.1 },
+    RotationSpeed: { value: DEFAULTS.RotationSpeed, min: -0.2, max: 0.2, step: 0.01 },
+    FBMAmplitude: { value: DEFAULTS.FBMAmplitude, min: 0.0, max: 5.0, step: 0.05 },
+    FBMPersistence: { value: DEFAULTS.FBMPersistence, min: 0.0, max: 4.0, step: 0.05 },
+    GapMix: { value: DEFAULTS.GapMix, min: 0.0, max: 1.0, step: 0.05 },
+    ContrastPower: { value: DEFAULTS.ContrastPower, min: 0.1, max: 5.0, step: 0.1 },
+    FinalPower: { value: DEFAULTS.FinalPower, min: 0.5, max: 10.0, step: 0.5 },
     Opacity: { value: DEFAULTS.Opacity, min: 0, max: 1, step: 0.01 },
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
     distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01 },
@@ -54,10 +63,13 @@ export default function NoiseB() {
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uNoiseSwirlSteps: { value: uNoiseSwirlSteps },
-      uNoiseSwirlValue: { value: uNoiseSwirlValue },
       uNoiseScale: { value: uNoiseScale },
-      uNoiseTimeScale: { value: uNoiseTimeScale },
+      uRotationSpeed: { value: uRotationSpeed },
+      uFBMAmplitude: { value: uFBMAmplitude },
+      uFBMPersistence: { value: uFBMPersistence },
+      uGapMix: { value: uGapMix },
+      uContrastPower: { value: uContrastPower },
+      uFinalPower: { value: uFinalPower },
       uOpacity: { value: uOpacity },
       uClickPoints: { value: Array(10).fill(new Vector2(0, 0)) },
       uClickStrengths: { value: Array(10).fill(0) },
@@ -134,15 +146,18 @@ export default function NoiseB() {
 
   useEffect(() => {
     if (materialRef.current) {
-      materialRef.current.uniforms.uNoiseSwirlSteps.value = uNoiseSwirlSteps
-      materialRef.current.uniforms.uNoiseSwirlValue.value = uNoiseSwirlValue
       materialRef.current.uniforms.uNoiseScale.value = uNoiseScale
-      materialRef.current.uniforms.uNoiseTimeScale.value = uNoiseTimeScale
+      materialRef.current.uniforms.uRotationSpeed.value = uRotationSpeed
+      materialRef.current.uniforms.uFBMAmplitude.value = uFBMAmplitude
+      materialRef.current.uniforms.uFBMPersistence.value = uFBMPersistence
+      materialRef.current.uniforms.uGapMix.value = uGapMix
+      materialRef.current.uniforms.uContrastPower.value = uContrastPower
+      materialRef.current.uniforms.uFinalPower.value = uFinalPower
       materialRef.current.uniforms.uOpacity.value = uOpacity
       materialRef.current.uniforms.uDistortionRadius.value = distortionRadius
       materialRef.current.uniforms.uDistortionStrength.value = distortionStrength
     }
-  }, [uNoiseSwirlSteps, uNoiseSwirlValue, uNoiseScale, uNoiseTimeScale, uOpacity, distortionRadius, distortionStrength])
+  }, [uNoiseScale, uRotationSpeed, uFBMAmplitude, uFBMPersistence, uGapMix, uContrastPower, uFinalPower, uOpacity, distortionRadius, distortionStrength])
 
   useFrame(({ clock }, delta) => {
     if (materialRef.current) {
@@ -155,7 +170,7 @@ export default function NoiseB() {
             age: point.age + delta,
             strength: Math.max(0, point.strength - delta * fadeSpeed)
           }))
-          .filter(point => point.strength > 0.01)
+          .filter(point => point.strength > 0.1)
       })
       
       const positions = Array(10).fill(new Vector2(0, 0))
