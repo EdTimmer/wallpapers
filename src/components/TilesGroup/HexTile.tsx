@@ -98,4 +98,7 @@ const HexTile = ({ scale = 4, position = [0, 0, 0], rotation = [0, 0, 0] }: Prop
   )
 }
 
+// Preload the GLTF model
+useGLTF.preload('/assets/models/hex_tile_4.glb');
+
 export default HexTile;

@@ -5,12 +5,20 @@ import WallC from './components/WallC';
 import WallB from './components/WallB';
 import WallA from './components/WallA';
 import HexTile from './components/TilesGroup/HexTile';
-import { Environment, OrbitControls } from '@react-three/drei';
-import TilesGroup from './components/TilesGroup';
+import HexTileWallpaper from './components/HexTileWallpaper';
 // import { BackdropImage } from './components/BackdropImage';
 
 function App() {
   const [activeWall, setActiveWall] = useState('A')
+  const [hexTileKey, setHexTileKey] = useState(0)
+
+  const handleWallChange = (wall: string) => {
+    if (wall === 'HexTile') {
+      // Increment key to force remount
+      setHexTileKey(prev => prev + 1);
+    }
+    setActiveWall(wall);
+  }
 
   const renderNoise = () => {
     switch (activeWall) {
@@ -32,16 +40,16 @@ function App() {
     <>
       <div className="app-container">
         <div className="buttons-container">
-          <button className="button"  onClick={() => setActiveWall('A')} style={{ cursor: 'pointer', border: activeWall === 'A' ? '1px solid white' : '1px solid transparent' }}>
+          <button className="button"  onClick={() => handleWallChange('A')} style={{ cursor: 'pointer', border: activeWall === 'A' ? '1px solid white' : '1px solid transparent' }}>
             Wallpaper A
           </button>
-          <button className="button"  onClick={() => setActiveWall('B')} style={{ cursor: 'pointer', border: activeWall === 'B' ? '1px solid white' : '1px solid transparent' }}>
+          <button className="button"  onClick={() => handleWallChange('B')} style={{ cursor: 'pointer', border: activeWall === 'B' ? '1px solid white' : '1px solid transparent' }}>
             Wallpaper B
           </button>
-          <button className="button"  onClick={() => setActiveWall('C')} style={{ cursor: 'pointer', border: activeWall === 'C' ? '1px solid white' : '1px solid transparent' }}>
+          <button className="button"  onClick={() => handleWallChange('C')} style={{ cursor: 'pointer', border: activeWall === 'C' ? '1px solid white' : '1px solid transparent' }}>
             Wallpaper C
           </button>
-          <button className="button"  onClick={() => setActiveWall('HexTile')} style={{ cursor: 'pointer', border: activeWall === 'HexTile' ? '1px solid white' : '1px solid transparent' }}>
+          <button className="button"  onClick={() => handleWallChange('HexTile')} style={{ cursor: 'pointer', border: activeWall === 'HexTile' ? '1px solid white' : '1px solid transparent' }}>
             Hex Tile
           </button>
         </div>
@@ -57,23 +65,7 @@ function App() {
             <ambientLight intensity={0.5} />
             {/* <OrbitControls enableZoom={true} /> */}
           </Canvas>}
-          {
-            activeWall === 'HexTile' && 
-            <div className="tiles-container">
-              <Canvas 
-                camera={{ position: [0, 0, 10],
-                zoom: 4.5
-              }}>
-                {/* <color attach="background" args={['#1D1F21']} /> */}
-                <ambientLight intensity={2.5} />
-                <directionalLight position={[5, 5, 5]} intensity={1} />
-                <TilesGroup rows={9} tilesPerRow={15} verticalSpacing={0.565} horizontalOffset={0.325} />
-                {/* <OrbitControls enableZoom={true} /> */}
-                <Environment preset="city" />
-              </Canvas>
-            </div>
-            }
-          
+          {activeWall === 'HexTile' && <HexTileWallpaper key={hexTileKey} />}          
       </div>
     </>
   )
