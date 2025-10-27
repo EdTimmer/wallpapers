@@ -1,17 +1,17 @@
 import { Suspense, useState, useEffect, useRef } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { Environment, Html, useProgress } from '@react-three/drei';
 import TilesGroup from './TilesGroup';
 
 function Loader({ onLoaded }: { onLoaded: () => void }) {
   const { active, progress } = useProgress();
+  const loadedCalledRef = useRef(false);
   
   useEffect(() => {
-    if (progress === 100 || (!active && progress === 0)) {
-      const timer = setTimeout(() => {
-        onLoaded();
-      }, 100);
-      return () => clearTimeout(timer);
+    // Call onLoaded when progress reaches 100 or when loading completes
+    if (!loadedCalledRef.current && (progress === 100 || (!active && progress > 0))) {
+      loadedCalledRef.current = true;
+      onLoaded();
     }
   }, [active, progress, onLoaded]);
   
@@ -32,17 +32,17 @@ function Loader({ onLoaded }: { onLoaded: () => void }) {
 
 function SceneContent({ onReady }: { onReady: () => void }) {
   const readyCalled = useRef(false);
-  const { gl } = useThree();
   
   useEffect(() => {
     if (!readyCalled.current) {
       readyCalled.current = true;
+      // Small delay to ensure everything is rendered
       const timer = setTimeout(() => {
         onReady();
-      }, 200);
+      }, 100);
       return () => clearTimeout(timer);
     }
-  }, [onReady, gl]);
+  }, [onReady]);
   
   return (
     <>
@@ -57,22 +57,18 @@ function SceneContent({ onReady }: { onReady: () => void }) {
 function HexTileWallpaper() {
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const handleReady = () => {
+  const handleLoaded = () => {
     setIsLoaded(true);
   };
 
-  const containerStyle = isLoaded 
-    ? { width: '100%', height: '100%' }
-    : { width: '100%', height: '100%', background: 'transparent' };
-
   return (
     <div 
-      className={isLoaded ? "tiles-container" : ""} 
-      style={containerStyle}
+      className={isLoaded ? "tiles-container" : ""}
+      style={{ width: '100%', height: '100%' }}
     >
       <Canvas camera={{ position: [0, 0, 10], zoom: 4.5 }}>
-        <Suspense fallback={<Loader onLoaded={handleReady} />}>
-          <SceneContent onReady={handleReady} />
+        <Suspense fallback={<Loader onLoaded={handleLoaded} />}>
+          <SceneContent onReady={handleLoaded} />
         </Suspense>
       </Canvas>
     </div>
