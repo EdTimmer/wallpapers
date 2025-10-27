@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -14,20 +14,16 @@ interface Props {
 const HexTile = ({ scale = 4, position = [0, 0, 0], rotation = [0, 0, 0] }: Props) => {
   const groupRef = useRef<THREE.Group>(null);
   const { nodes, materials } = useGLTF('/assets/models/hex_tile_4.glb'); 
-  const [isHovered, setIsHovered] = useState(false);
-  const isHoveredRef = useRef(false);
   const currentRotationRef = useRef(0);
   const targetRotationRef = useRef(0);
+  const holdTimeRef = useRef(0);
+  const isHoldingRef = useRef(false);
 
   const handlePointerEnter = () => {
-    setIsHovered(true);
-    isHoveredRef.current = true;
+    // Start flip animation
     targetRotationRef.current = Math.PI;
-  };
-
-  const handlePointerLeave = () => {
-    setIsHovered(false);
-    isHoveredRef.current = false;
+    holdTimeRef.current = 0;
+    isHoldingRef.current = false;
   };
 
   
@@ -36,14 +32,23 @@ const HexTile = ({ scale = 4, position = [0, 0, 0], rotation = [0, 0, 0] }: Prop
   useFrame((_, delta) => {
     if (!groupRef.current) return;
     
-    // Update target based on hover state only if we're at a stable position
     const isAtFlipped = Math.abs(currentRotationRef.current - Math.PI) < 0.01;
-    const isAtOriginal = Math.abs(currentRotationRef.current) < 0.01;
     
-    if (!isHovered && isAtFlipped && !isHoveredRef.current) {
-      targetRotationRef.current = 0;
-    } else if (isHovered && isAtOriginal) {
-      targetRotationRef.current = Math.PI;
+    // If we've reached flipped position, start holding timer
+    if (isAtFlipped && !isHoldingRef.current) {
+      isHoldingRef.current = true;
+      holdTimeRef.current = 0;
+    }
+    
+    // If holding, increment timer
+    if (isHoldingRef.current) {
+      holdTimeRef.current += delta;
+
+      // After 2 seconds, rotate back
+      if (holdTimeRef.current >= 2) {
+        targetRotationRef.current = 0;
+        isHoldingRef.current = false;
+      }
     }
     
     // Incorporate delta into the interpolation factor for frame rate independence
@@ -85,7 +90,6 @@ const HexTile = ({ scale = 4, position = [0, 0, 0], rotation = [0, 0, 0] }: Prop
                 geometry={mesh.geometry}
                 material={originalMaterial}
                 onPointerEnter={handlePointerEnter}
-                onPointerLeave={handlePointerLeave}
               />
             );
           })
