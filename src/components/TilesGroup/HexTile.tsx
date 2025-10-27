@@ -13,18 +13,21 @@ interface Props {
 
 const HexTile = ({ scale = 4, position = [0, 0, 0], rotation = [0, 0, 0] }: Props) => {
   const groupRef = useRef<THREE.Group>(null);
-  const { nodes, materials } = useGLTF('/assets/models/hex_tile.glb'); 
+  const { nodes, materials } = useGLTF('/assets/models/hex_tile_4.glb'); 
   const [isHovered, setIsHovered] = useState(false);
+  const isHoveredRef = useRef(false);
   const currentRotationRef = useRef(0);
   const targetRotationRef = useRef(0);
 
   const handlePointerEnter = () => {
     setIsHovered(true);
+    isHoveredRef.current = true;
     targetRotationRef.current = Math.PI;
   };
 
   const handlePointerLeave = () => {
     setIsHovered(false);
+    isHoveredRef.current = false;
   };
 
   
@@ -37,7 +40,7 @@ const HexTile = ({ scale = 4, position = [0, 0, 0], rotation = [0, 0, 0] }: Prop
     const isAtFlipped = Math.abs(currentRotationRef.current - Math.PI) < 0.01;
     const isAtOriginal = Math.abs(currentRotationRef.current) < 0.01;
     
-    if (!isHovered && isAtFlipped) {
+    if (!isHovered && isAtFlipped && !isHoveredRef.current) {
       targetRotationRef.current = 0;
     } else if (isHovered && isAtOriginal) {
       targetRotationRef.current = Math.PI;

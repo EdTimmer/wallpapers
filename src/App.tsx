@@ -55,21 +55,23 @@ function App() {
             {/* <Snowflake scale={0.25} position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]} /> */}
             {renderNoise()}
             <ambientLight intensity={0.5} />
-            <OrbitControls enableZoom={true} />
+            {/* <OrbitControls enableZoom={true} /> */}
           </Canvas>}
           {
             activeWall === 'HexTile' && 
+            <div className="tiles-container">
               <Canvas 
                 camera={{ position: [0, 0, 10],
                 zoom: 4.5
               }}>
-                <color attach="background" args={['#1D1F21']} />
+                {/* <color attach="background" args={['#1D1F21']} /> */}
                 <ambientLight intensity={2.5} />
                 <directionalLight position={[5, 5, 5]} intensity={1} />
                 <TilesGroup rows={9} tilesPerRow={15} verticalSpacing={0.565} horizontalOffset={0.325} />
-                <OrbitControls enableZoom={true} />
+                {/* <OrbitControls enableZoom={true} /> */}
                 <Environment preset="city" />
               </Canvas>
+            </div>
             }
           
       </div>
