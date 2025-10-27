@@ -11,7 +11,7 @@ interface ClickPoint {
   age: number
 }
 
-export default function NoiseB() {
+export default function WallB() {
   const meshRef = useRef<Mesh>(null!)
   const materialRef = useRef<ShaderMaterial>(null!)
   const [clickPoints, setClickPoints] = useState<ClickPoint[]>([])
@@ -21,7 +21,7 @@ export default function NoiseB() {
 
   const DEFAULTS = {
     Scale: 10.0,
-    RotationSpeed: 0.05,
+    RotationSpeed: 0.005,
     FBMAmplitude: 0.5,
     FBMPersistence: 0.5,
     GapMix: 0.5,
@@ -30,7 +30,8 @@ export default function NoiseB() {
     Opacity: 0.6,
     fadeSpeed: 3.0,
     distortionRadius: 0.06,
-    distortionStrength: 0.25
+    distortionStrength: 0.25,
+    BaseColor: '#69e9ff'
   }
 
   const [{ 
@@ -44,16 +45,18 @@ export default function NoiseB() {
     Opacity: uOpacity,
     fadeSpeed,
     distortionRadius,
-    distortionStrength
+    distortionStrength,
+    BaseColor: baseColor
   }, set] = useControls('NoiseB', () => ({
     Scale: { value: DEFAULTS.Scale, min: 0.1, max: 20, step: 0.1 },
-    RotationSpeed: { value: DEFAULTS.RotationSpeed, min: -0.2, max: 0.2, step: 0.01 },
+    RotationSpeed: { value: DEFAULTS.RotationSpeed, min: -1.0, max: 1.0, step: 0.01 },
     FBMAmplitude: { value: DEFAULTS.FBMAmplitude, min: 0.0, max: 5.0, step: 0.05 },
     FBMPersistence: { value: DEFAULTS.FBMPersistence, min: 0.0, max: 4.0, step: 0.05 },
     GapMix: { value: DEFAULTS.GapMix, min: 0.0, max: 1.0, step: 0.05 },
     ContrastPower: { value: DEFAULTS.ContrastPower, min: 0.1, max: 5.0, step: 0.1 },
     FinalPower: { value: DEFAULTS.FinalPower, min: 0.5, max: 10.0, step: 0.5 },
     Opacity: { value: DEFAULTS.Opacity, min: 0, max: 1, step: 0.01 },
+    BaseColor: { value: DEFAULTS.BaseColor },
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
     distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01 },
     distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001 },
@@ -75,7 +78,8 @@ export default function NoiseB() {
       uClickStrengths: { value: Array(10).fill(0) },
       uClickCount: { value: 0 },
       uDistortionRadius: { value: 0.15 },
-      uDistortionStrength: { value: 0.02 }
+      uDistortionStrength: { value: 0.02 },
+      uBaseColor: { value: [0.525, 0.992, 0.866] }
     }),
     []
   )
@@ -156,8 +160,15 @@ export default function NoiseB() {
       materialRef.current.uniforms.uOpacity.value = uOpacity
       materialRef.current.uniforms.uDistortionRadius.value = distortionRadius
       materialRef.current.uniforms.uDistortionStrength.value = distortionStrength
+      
+      // Convert base color hex to RGB array (0-1 range)
+      const baseHex = baseColor.replace('#', '')
+      const br = parseInt(baseHex.substring(0, 2), 16) / 255
+      const bg = parseInt(baseHex.substring(2, 4), 16) / 255
+      const bb = parseInt(baseHex.substring(4, 6), 16) / 255
+      materialRef.current.uniforms.uBaseColor.value = [br, bg, bb]
     }
-  }, [uNoiseScale, uRotationSpeed, uFBMAmplitude, uFBMPersistence, uGapMix, uContrastPower, uFinalPower, uOpacity, distortionRadius, distortionStrength])
+  }, [uNoiseScale, uRotationSpeed, uFBMAmplitude, uFBMPersistence, uGapMix, uContrastPower, uFinalPower, uOpacity, distortionRadius, distortionStrength, baseColor])
 
   useFrame(({ clock }, delta) => {
     if (materialRef.current) {

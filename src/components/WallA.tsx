@@ -11,7 +11,7 @@ interface ClickedCell {
   age: number
 }
 
-export default function CellsA() {
+export default function WallA() {
   const meshRef = useRef<Mesh>(null!)
   const materialRef = useRef<ShaderMaterial>(null!)
   const [clickedCells, setClickedCells] = useState<ClickedCell[]>([])
@@ -21,10 +21,10 @@ export default function CellsA() {
   const DEFAULTS = {
     'Res X': 1920,
     'Res Y': 3000,
-    'Anim Speed': 0.5,
+    'Anim Speed': 0.3,
     'Fade Speed': 0.5,
     'Click': '#ff00fd',
-    'Click Intensity': 0.3,
+    'Click Intensity': 0.7,
     'Base': '#33cc80',
     'Base Intensity': 0.3
   }

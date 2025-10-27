@@ -4,41 +4,52 @@
   font-family: 'Montserrat', sans-serif;
 }
 
+button {
+  border: none;
+  outline: none;
+  font-family: inherit;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 0;
+}
 
+button:focus {
+  outline: none;
+}
+
+button:focus-visible {
+  outline: none;
+}
 
 .app-container {
   position: relative;
   width: 100vw;
   height: 100vh;
   background-color: black;
-
 }
 
-.wallpaper-a {
+.buttons-container {
   position: absolute;
   top: 20px;
   left: 20px;
   z-index: 10;
-  color: white;
-  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.wallpaper-b {
-  position: absolute;
-  top: 60px;
-  left: 20px;
-  z-index: 10;
+.button {
+  padding: 8px 32px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
   color: white;
   font-size: 18px;
-}
 
-.wallpaper-c {
-  position: absolute;
-  top: 100px;
-  left: 20px;
-  z-index: 10;
-  color: white;
-  font-size: 18px;
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
 }
 
 .instructions {

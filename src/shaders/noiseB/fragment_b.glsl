@@ -16,6 +16,7 @@ uniform float uDistortionStrength; // click push strength
 uniform vec2  uClickPoints[10];
 uniform float uClickStrengths[10];
 uniform int   uClickCount;
+uniform vec3  uBaseColor;          // base color (from hex)
 
 varying vec2 vUv;
 
@@ -107,7 +108,7 @@ void main() {
 
   // Slow rotation/drift (intensity only)
   float t = uTime * 0.15;  // base animation time
-  float rotationAngle = uTime * uRotationSpeed;  // separate rotation control
+  float rotationAngle = uTime * (uRotationSpeed / 10.0);  // separate rotation control
   float cs = cos(rotationAngle), sn = sin(rotationAngle);
   mat2 R = mat2(cs, -sn, sn, cs);
   vec2 p = (R * (uv - 0.5)) + 0.5;
@@ -129,7 +130,6 @@ void main() {
   m = pow(max(m, 0.0), uContrastPower);
   float noise = clamp(pow(m, uFinalPower) * 1.2, 0.0, 1.0);    // reduced from 2.0 to 1.2 for less bright spots
 
-  // Original green tint on black background
-  vec3 green = vec3(0.525, 0.992, 0.866);
-  gl_FragColor = vec4(noise * green, uOpacity);
+  // Use uniform base color instead of hardcoded green
+  gl_FragColor = vec4(noise * uBaseColor, uOpacity);
 }

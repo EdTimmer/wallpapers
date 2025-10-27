@@ -11,7 +11,7 @@ interface ClickPoint {
   age: number
 }
 
-export default function NoiseA() {
+export default function WallC() {
   const meshRef = useRef<Mesh>(null!)
   const materialRef = useRef<ShaderMaterial>(null!)
   const [clickPoints, setClickPoints] = useState<ClickPoint[]>([])
@@ -21,7 +21,7 @@ export default function NoiseA() {
 
   const DEFAULTS = {
     uNoise: 0.1,
-    uSpeed: 0.06,
+    uSpeed: 0.04,
     uOscillationFrequency: 82.0,
     uIntensity: 0.1,
     uSecondColor: '#9a638e', // Hex color
@@ -32,7 +32,7 @@ export default function NoiseA() {
 
   const [{ uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, fadeSpeed, distortionRadius, distortionStrength }, set] = useControls(() => ({
     uNoise: { value: DEFAULTS.uNoise, min: 0, max: 50, step: 0.1 },
-    uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 2, step: 0.01 },
+    uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 1, step: 0.01 },
     uOscillationFrequency: { value: DEFAULTS.uOscillationFrequency, min: 0, max: 100, step: 1 },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 1, step: 0.01 },
     uSecondColor: { value: DEFAULTS.uSecondColor },
