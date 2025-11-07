@@ -24,7 +24,7 @@ export default function WallC() {
     uSpeed: 0.04,
     uOscillationFrequency: 82.0,
     uIntensity: 0.1,
-    uSecondColor: '#9a638e', // Hex color
+    uSecondColor: '#65adfa', // Hex color
     fadeSpeed: 0.5,
     distortionRadius: 0.1,
     distortionStrength: 0.3

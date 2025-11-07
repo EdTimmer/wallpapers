@@ -90,8 +90,8 @@ void main() {
   for(int i = 0; i < 10; i++) {
     if(i >= uClickCount) break;
     
-    // Skip points with negligible strength
-    if(uClickStrengths[i] < 0.1) continue;
+    float strength = uClickStrengths[i];
+    if(strength < 0.1) continue;
     
     vec2 toClick = distortedUv - uClickPoints[i];
     float dist = length(toClick);
@@ -99,36 +99,34 @@ void main() {
     // Only apply within radius
     if (dist < uBlobSize && dist > 0.0001) {
       // Smooth falloff
-      float normalizedDist = dist / uBlobSize;
-      float falloff = 1.0 - normalizedDist;
-      falloff = smoothstep(0.0, 1.0, falloff);
+      float falloff = smoothstep(0.0, 1.0, 1.0 - dist / uBlobSize);
       
       // Strength fade-out
-      float strengthFalloff = smoothstep(0.0, 0.2, uClickStrengths[i]);
+      float strengthFalloff = smoothstep(0.0, 0.2, strength);
       
       // Spherical lens distortion (magnify/pinch based on sign)
-      float lensStrength = falloff * strengthFalloff * uClickStrengths[i] * uBlobIntensity;
+      float lensStrength = falloff * strengthFalloff * strength * uBlobIntensity * 3.0;
       
       // Radial displacement (negative = magnify, positive = pinch)
       vec2 direction = normalize(toClick);
-      distortedUv = uClickPoints[i] + direction * (dist - dist * lensStrength * 3.0);
+      distortedUv = uClickPoints[i] + direction * dist * (1.0 - lensStrength);
     }
   }
 
-  // sharp
-  // float strength = step(0.5, sin((cnoise(vUv * 10.0) + uTime * 0.1 )* 20.0));
-
+  // Pre-calculate time-based animation
+  float timeSpeed = uTime * uSpeed;
+  
   // Apply domain warping for more interesting patterns
-  vec2 warpedUv = domainWarp(distortedUv * uNoise, uTime * uSpeed);
+  vec2 warpedUv = domainWarp(distortedUv * uNoise, timeSpeed);
   
   // Use fBm instead of simple noise for more detail
   float strength = fbm(warpedUv);
   
   // Add some oscillation based on time
-  strength = sin(strength * uOscillationFrequency + uTime * uSpeed * -0.5);
+  strength = sin(strength * uOscillationFrequency + timeSpeed * -0.5);
 
   // clamp the strength
-  strength = clamp(strength, 0.0, 1.0); // 0.06
+  strength = clamp(strength, 0.0, 1.0);
 
   // Black
   vec3 firstColor = vec3(0.0);
