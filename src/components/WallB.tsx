@@ -81,7 +81,7 @@ export default function WallB() {
       uDistortionStrength: { value: 0.02 },
       uBaseColor: { value: [0.525, 0.992, 0.866] }
     }),
-    []
+    [uNoiseScale, uRotationSpeed, uFBMAmplitude, uFBMPersistence, uGapMix, uContrastPower, uFinalPower, uOpacity]
   )
 
   useEffect(() => {
