@@ -10,22 +10,20 @@ uniform float uColorIntensity;
 uniform float uClickColorIntensity;
 uniform vec3 uBaseColor;
 
-vec3 red = vec3(1.0, 0.0, 0.0);
-vec3 blue = vec3(0.0, 0.0, 1.0);
-vec3 white = vec3(1.0, 1.0, 1.0);
 vec3 black = vec3(0.0, 0.0, 0.0);
-vec3 yellow = vec3(1.0, 1.0, 0.0);
 
-// Simple hash function to generate pseudo-random values from cell coordinates
+// Optimized hash function - faster than sin-based hash
 float hash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  p = fract(p * 0.3183099 + 0.1);
+  p *= 17.0;
+  return fract(p.x * p.y * (p.x + p.y));
 }
 
 void main() {
   // grid
 
   vec2 center = vUvs - 0.5;
-  vec2 scaledUV = center * resolution / 100.0;
+  vec2 scaledUV = center * resolution * 0.01;
   vec2 cellID = floor(scaledUV); // Unique ID for each cell
   vec2 cell = fract(scaledUV);
   cell = abs(cell - 0.5);
@@ -47,22 +45,17 @@ void main() {
   for(int i = 0; i < 20; i++) {
     if(i >= uClickCount) break;
     
-    // Check if current cell matches a clicked cell
-    if(cellID.x == uClickedCells[i].x && cellID.y == uClickedCells[i].y) {
+    // Vectorized comparison for better performance
+    vec2 diff = abs(cellID - uClickedCells[i]);
+    if(diff.x < 0.5 && diff.y < 0.5) {
       clickInfluence = max(clickInfluence, uClickStrengths[i]);
     }
   }
   
-  // Mix in click color if this cell was clicked
-  if(clickInfluence > 0.0) {
-    colour = mix(colour, uClickColor * uClickColorIntensity, clickInfluence);
-  }
+  // Mix in click color - no conditional needed, mix handles 0.0 efficiently
+  colour = mix(colour, uClickColor * uClickColorIntensity, clickInfluence);
 
-  // float cellLine = smoothstep(0.0, 0.5, distToCell);
   float cellLine = step(0.5, distToCell);
-
-  float xAxis = smoothstep(0.0, 0.002, abs(vUvs.y - 0.5));
-  float yAxis = smoothstep(0.0, 0.002, abs(vUvs.x - 0.5));
 
   colour = mix(black, colour, cellLine);
 
