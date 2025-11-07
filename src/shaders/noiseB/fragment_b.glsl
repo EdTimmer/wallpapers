@@ -81,8 +81,8 @@ void main() {
   for (int i = 0; i < 10; i++) {
     if (i >= uClickCount) break;
     
-    // Skip points with negligible strength
-    if (uClickStrengths[i] < 0.1) continue;
+    float strength = uClickStrengths[i];
+    if (strength < 0.1) continue;
     
     vec2 toClick = uv - uClickPoints[i];
     float dist = length(toClick);
@@ -90,25 +90,23 @@ void main() {
     // Only apply within radius
     if (dist < uDistortionRadius && dist > 0.0001) {
       // Smooth falloff
-      float normalizedDist = dist / uDistortionRadius;
-      float falloff = 1.0 - normalizedDist;
-      falloff = smoothstep(0.0, 1.0, falloff);
+      float falloff = smoothstep(0.0, 1.0, 1.0 - dist / uDistortionRadius);
       
       // Strength fade-out
-      float strengthFalloff = smoothstep(0.0, 0.2, uClickStrengths[i]);
+      float strengthFalloff = smoothstep(0.0, 0.2, strength);
       
       // Spherical lens distortion (magnify/pinch based on sign)
-      float lensStrength = falloff * strengthFalloff * uClickStrengths[i] * uDistortionStrength;
+      float lensStrength = falloff * strengthFalloff * strength * uDistortionStrength * 3.0;
       
       // Radial displacement (negative = magnify, positive = pinch)
       vec2 direction = normalize(toClick);
-      uv = uClickPoints[i] + direction * (dist - dist * lensStrength * 3.0);
+      uv = uClickPoints[i] + direction * dist * (1.0 - lensStrength);
     }
   }
 
   // Slow rotation/drift (intensity only)
   float t = uTime * 0.15;  // base animation time
-  float rotationAngle = uTime * (uRotationSpeed / 10.0);  // separate rotation control
+  float rotationAngle = uTime * uRotationSpeed * 0.1;  // separate rotation control
   float cs = cos(rotationAngle), sn = sin(rotationAngle);
   mat2 R = mat2(cs, -sn, sn, cs);
   vec2 p = (R * (uv - 0.5)) + 0.5;
