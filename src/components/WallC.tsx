@@ -56,7 +56,7 @@ export default function WallC() {
       uBlobSize: { value: 0.15 },
       uBlobIntensity: { value: 0.02 }
     }),
-    [uNoise, uSpeed, uOscillationFrequency, uIntensity]
+    []
   )
 
   useEffect(() => {
