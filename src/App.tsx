@@ -4,10 +4,8 @@ import './App.css'
 import WallC from './components/WallC';
 import WallB from './components/WallB';
 import WallA from './components/WallA';
-import WallAOptimized from './components/WallAOptimized';
-import WallBOptimized from './components/WallBOptimized';
-import WallCOptimized from './components/WallCOptimized';
 import Navigation from './components/Navigation';
+import WallD from './components/WallD';
 
 function App() {
   return (
@@ -24,9 +22,7 @@ function App() {
               <Route path="/wall-a" element={<WallA />} />
               <Route path="/wall-b" element={<WallB />} />
               <Route path="/wall-c" element={<WallC />} />
-              <Route path="/wall-a-optimized" element={<WallAOptimized />} />
-              <Route path="/wall-b-optimized" element={<WallBOptimized />} />
-              <Route path="/wall-c-optimized" element={<WallCOptimized />} />
+              <Route path="/wall-d" element={<WallD />} />
               <Route path="/" element={<Navigate to="/wall-a" replace />} />
             </Routes>
             <ambientLight intensity={0.5} />

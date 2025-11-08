@@ -2,8 +2,8 @@ import { useRef, useEffect, useMemo, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Mesh, ShaderMaterial, Vector2, Raycaster } from 'three'
 import { useControls, button } from 'leva'
-import vertexShader from '@shaders/cellsA/vertex_cells_a.glsl'
-import fragmentShader from '@shaders/cellsA/fragment_cells_a.glsl'
+import vertexShader from '@shaders/wallShadersA/vertex_cells_a.glsl'
+import fragmentShader from '@shaders/wallShadersA/fragment_cells_a.glsl'
 
 interface ClickedCell {
   cellID: Vector2

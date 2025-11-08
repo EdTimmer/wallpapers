@@ -2,8 +2,8 @@ import { useRef, useEffect, useMemo, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Mesh, ShaderMaterial, Vector2, Raycaster } from 'three'
 import { useControls, button } from 'leva'
-import vertexShader from '@shaders/noiseA/vertex_a.glsl'
-import fragmentShader from '@shaders/noiseA/fragment_a.glsl'
+import vertexShader from '@shaders/wallShadersC/vertex_a.glsl'
+import fragmentShader from '@shaders/wallShadersC/fragment_a.glsl'
 
 interface ClickPoint {
   position: Vector2
@@ -20,22 +20,24 @@ export default function WallC() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    uNoise: 0.1,
-    uSpeed: 0.04,
-    uOscillationFrequency: 82.0,
+    uNoise: 0.16,
+    uSpeed: 0.05,
+    uOscillationFrequency: 36.0,
     uIntensity: 0.1,
-    uSecondColor: '#65adfa', // Hex color
+    uSecondColor: '#339e86',
+    uThirdColor: '#18384e',
     fadeSpeed: 0.5,
     distortionRadius: 0.1,
     distortionStrength: 0.3
   }
 
-  const [{ uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, fadeSpeed, distortionRadius, distortionStrength }, set] = useControls(() => ({
+  const [{ uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, uThirdColor, fadeSpeed, distortionRadius, distortionStrength }, set] = useControls('Wall C', () => ({
     uNoise: { value: DEFAULTS.uNoise, min: 0, max: 50, step: 0.1 },
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 1, step: 0.01 },
     uOscillationFrequency: { value: DEFAULTS.uOscillationFrequency, min: 0, max: 100, step: 1 },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 1, step: 0.01 },
     uSecondColor: { value: DEFAULTS.uSecondColor },
+    uThirdColor: { value: DEFAULTS.uThirdColor },
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
     distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01 },
     distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001 },
@@ -50,6 +52,7 @@ export default function WallC() {
       uOscillationFrequency: { value: uOscillationFrequency },
       uIntensity: { value: uIntensity },
       uSecondColor: { value: [0.525, 0.992, 0.866] },
+      uThirdColor: { value: [1.0, 0.4, 0.7] },
       uClickPoints: { value: Array(10).fill(new Vector2(0, 0)) },
       uClickStrengths: { value: Array(10).fill(0) },
       uClickCount: { value: 0 },
@@ -130,17 +133,24 @@ export default function WallC() {
       materialRef.current.uniforms.uOscillationFrequency.value = uOscillationFrequency
       materialRef.current.uniforms.uIntensity.value = uIntensity
       
-      // Convert hex to RGB array (0-1 range)
-      const hex = uSecondColor.replace('#', '')
-      const r = parseInt(hex.substring(0, 2), 16) / 255
-      const g = parseInt(hex.substring(2, 4), 16) / 255
-      const b = parseInt(hex.substring(4, 6), 16) / 255
-      materialRef.current.uniforms.uSecondColor.value = [r, g, b]
+      // Convert hex to RGB array (0-1 range) for second color
+      const hex2 = uSecondColor.replace('#', '')
+      const r2 = parseInt(hex2.substring(0, 2), 16) / 255
+      const g2 = parseInt(hex2.substring(2, 4), 16) / 255
+      const b2 = parseInt(hex2.substring(4, 6), 16) / 255
+      materialRef.current.uniforms.uSecondColor.value = [r2, g2, b2]
+      
+      // Convert hex to RGB array (0-1 range) for third color
+      const hex3 = uThirdColor.replace('#', '')
+      const r3 = parseInt(hex3.substring(0, 2), 16) / 255
+      const g3 = parseInt(hex3.substring(2, 4), 16) / 255
+      const b3 = parseInt(hex3.substring(4, 6), 16) / 255
+      materialRef.current.uniforms.uThirdColor.value = [r3, g3, b3]
       
       materialRef.current.uniforms.uBlobSize.value = distortionRadius
       materialRef.current.uniforms.uBlobIntensity.value = distortionStrength
     }
-  }, [uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, distortionRadius, distortionStrength])
+  }, [uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, uThirdColor, distortionRadius, distortionStrength])
 
   useFrame(({ clock }, delta) => {
     if (materialRef.current) {

@@ -12,6 +12,7 @@ uniform vec3 uBlobColor; // Color of click blobs
 uniform float uBlobIntensity; // Intensity/brightness of blob color
 uniform float uIntensity; // Color intensity multiplier
 uniform vec3 uSecondColor; // Second color for the gradient
+uniform vec3 uThirdColor; // Third color for the gradient
 
 varying vec2 vUv;
 
@@ -128,16 +129,20 @@ void main() {
   // clamp the strength
   strength = clamp(strength, 0.0, 1.0);
 
-  // Black
-  vec3 firstColor = vec3(0.0);
-  // Dark purple
-  // vec3 secondColor = vec3(0.133, 0, 0.239) * 0.2; // Scale down intensity
-
-  // Light purple
-  vec3 secondColor = uSecondColor * uIntensity; // Scale down intensity
-  // Gray
-  // vec3 secondColor = vec3(0.054, 0.058, 0.062); // 0.086, 0.537, 0
-  vec3 mixedColor = mix(firstColor, secondColor, strength);
+  // Three-color gradient
+  vec3 firstColor = vec3(0.0); // Black
+  vec3 secondColor = uSecondColor * uIntensity;
+  vec3 thirdColor = uThirdColor * uIntensity;
+  
+  // Create smooth transition through three colors
+  // 0.0 - 0.5: blend from first to second
+  // 0.5 - 1.0: blend from second to third
+  vec3 mixedColor;
+  if (strength < 0.5) {
+    mixedColor = mix(firstColor, secondColor, strength * 2.0);
+  } else {
+    mixedColor = mix(secondColor, thirdColor, (strength - 0.5) * 2.0);
+  }
   
   gl_FragColor = vec4(mixedColor, 1.0);
 

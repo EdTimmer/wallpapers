@@ -2,8 +2,8 @@ import { useRef, useEffect, useMemo, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Mesh, ShaderMaterial, Vector2, Raycaster } from 'three'
 import { useControls, button } from 'leva'
-import vertexShader from '@shaders/noiseB/vertex_b.glsl'
-import fragmentShader from '@shaders/noiseB/fragment_b.glsl'
+import vertexShader from '@shaders/wallShadersB/vertex_b.glsl'
+import fragmentShader from '@shaders/wallShadersB/fragment_b.glsl'
 
 interface ClickPoint {
   position: Vector2
