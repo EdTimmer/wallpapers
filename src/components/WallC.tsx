@@ -31,17 +31,34 @@ export default function WallC() {
     distortionStrength: 0.3
   }
 
-  const [{ uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, uThirdColor, fadeSpeed, distortionRadius, distortionStrength }, set] = useControls('Wall C', () => ({
+  const [{ uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, uThirdColor }, setMain] = useControls('Wall C', () => ({
     uNoise: { value: DEFAULTS.uNoise, min: 0, max: 50, step: 0.1 },
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 1, step: 0.01 },
     uOscillationFrequency: { value: DEFAULTS.uOscillationFrequency, min: 0, max: 100, step: 1 },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 1, step: 0.01 },
     uSecondColor: { value: DEFAULTS.uSecondColor },
     uThirdColor: { value: DEFAULTS.uThirdColor },
+    'Reset All': button(() => {
+      setMain({
+        uNoise: DEFAULTS.uNoise,
+        uSpeed: DEFAULTS.uSpeed,
+        uOscillationFrequency: DEFAULTS.uOscillationFrequency,
+        uIntensity: DEFAULTS.uIntensity,
+        uSecondColor: DEFAULTS.uSecondColor,
+        uThirdColor: DEFAULTS.uThirdColor
+      })
+      setDistortion({
+        fadeSpeed: DEFAULTS.fadeSpeed,
+        distortionRadius: DEFAULTS.distortionRadius,
+        distortionStrength: DEFAULTS.distortionStrength
+      })
+    })
+  }))
+
+  const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion', () => ({
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
-    distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01 },
-    distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001 },
-    'Reset All': button(() => set(DEFAULTS))
+    distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01, label: 'Radius' },
+    distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001, label: 'Strength' }
   }))
 
   const uniforms = useMemo(

@@ -43,11 +43,8 @@ export default function WallB() {
     ContrastPower: uContrastPower,
     FinalPower: uFinalPower,
     Opacity: uOpacity,
-    fadeSpeed,
-    distortionRadius,
-    distortionStrength,
     BaseColor: baseColor
-  }, set] = useControls('NoiseB', () => ({
+  }, setMain] = useControls('NoiseB', () => ({
     Scale: { value: DEFAULTS.Scale, min: 0.1, max: 20, step: 0.1 },
     RotationSpeed: { value: DEFAULTS.RotationSpeed, min: -1.0, max: 1.0, step: 0.01 },
     FBMAmplitude: { value: DEFAULTS.FBMAmplitude, min: 0.0, max: 5.0, step: 0.05 },
@@ -57,10 +54,30 @@ export default function WallB() {
     FinalPower: { value: DEFAULTS.FinalPower, min: 0.5, max: 10.0, step: 0.5 },
     Opacity: { value: DEFAULTS.Opacity, min: 0, max: 1, step: 0.01 },
     BaseColor: { value: DEFAULTS.BaseColor },
+    'Reset All': button(() => {
+      setMain({
+        Scale: DEFAULTS.Scale,
+        RotationSpeed: DEFAULTS.RotationSpeed,
+        FBMAmplitude: DEFAULTS.FBMAmplitude,
+        FBMPersistence: DEFAULTS.FBMPersistence,
+        GapMix: DEFAULTS.GapMix,
+        ContrastPower: DEFAULTS.ContrastPower,
+        FinalPower: DEFAULTS.FinalPower,
+        Opacity: DEFAULTS.Opacity,
+        BaseColor: DEFAULTS.BaseColor
+      })
+      setDistortion({
+        fadeSpeed: DEFAULTS.fadeSpeed,
+        distortionRadius: DEFAULTS.distortionRadius,
+        distortionStrength: DEFAULTS.distortionStrength
+      })
+    })
+  }))
+
+  const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion', () => ({
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
-    distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01 },
-    distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001 },
-    'Reset All': button(() => set(DEFAULTS))
+    distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01, label: 'Radius' },
+    distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001, label: 'Strength' }
   }))
 
   const uniforms = useMemo(

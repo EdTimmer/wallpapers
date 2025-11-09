@@ -15,6 +15,11 @@ uniform vec3 uFirstColor; // Base color
 uniform vec3 uSecondColor; // Mid color
 uniform vec3 uThirdColor; // Top color
 uniform vec2 uResolution;
+uniform vec2 uClickPoints[10]; // Array of click positions
+uniform float uClickStrengths[10]; // Strength/fade for each click
+uniform int uClickCount; // Number of active clicks
+uniform float uBlobSize; // Size of click blobs
+uniform float uBlobIntensity; // Intensity/brightness of blob color
 
 varying vec2 vUv;
 
@@ -85,7 +90,43 @@ vec3 colorRamp(ColorStop colors[3], float factor) {
 }
 
 void main() {
-  vec2 uv = vUv;
+  // Apply spherical lens distortion from click points
+  vec2 distortedUv = vUv;
+  float aspectRatio = uResolution.x / uResolution.y;
+  
+  for(int i = 0; i < 10; i++) {
+    if(i >= uClickCount) break;
+    
+    float strength = uClickStrengths[i];
+    if(strength < 0.1) continue;
+    
+    // Convert to aspect-corrected space for distance calculation
+    vec2 uvAspect = vec2(distortedUv.x * aspectRatio, distortedUv.y);
+    vec2 clickAspect = vec2(uClickPoints[i].x * aspectRatio, uClickPoints[i].y);
+    vec2 toClick = uvAspect - clickAspect;
+    float dist = length(toClick);
+    
+    // Only apply within radius
+    if (dist < uBlobSize && dist > 0.0001) {
+      // Smooth falloff
+      float falloff = smoothstep(0.0, 1.0, 1.0 - dist / uBlobSize);
+      
+      // Strength fade-out
+      float strengthFalloff = smoothstep(0.0, 0.2, strength);
+      
+      // Spherical lens distortion (magnify/pinch based on sign)
+      float lensStrength = falloff * strengthFalloff * strength * uBlobIntensity * 3.0;
+      
+      // Radial displacement (negative = magnify, positive = pinch)
+      vec2 direction = normalize(toClick);
+      vec2 newPosAspect = clickAspect + direction * dist * (1.0 - lensStrength);
+      
+      // Convert back to UV space
+      distortedUv = vec2(newPosAspect.x / aspectRatio, newPosAspect.y);
+    }
+  }
+  
+  vec2 uv = distortedUv;
   
   // Create three-color gradient (first -> second -> third)
   ColorStop colors[3];
