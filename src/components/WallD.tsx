@@ -58,7 +58,7 @@ export default function WallD() {
     uSecondColor: '#b19eef',
     uThirdColor: '#5227ff',
     fadeSpeed: 0.5,
-    distortionRadius: 0.2,
+    distortionRadius: 0.25,
     distortionStrength: 0.3
   }
 
@@ -92,7 +92,7 @@ export default function WallD() {
     })
   }))
 
-  const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion', () => ({
+  const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion D', () => ({
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
     distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01, label: 'Radius' },
     distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001, label: 'Strength' }

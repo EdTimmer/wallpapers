@@ -5,6 +5,9 @@ function Navigation() {
 
   return (
     <div className="buttons-container">
+      <Link to="/aurora" className="button" style={{ cursor: 'pointer', border: location.pathname === '/aurora' ? '1px solid white' : '1px solid transparent' }}>
+        Aurora
+      </Link>
       <Link to="/wall-a" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-a' ? '1px solid white' : '1px solid transparent' }}>
         Wallpaper A
       </Link>
@@ -13,9 +16,6 @@ function Navigation() {
       </Link>
       <Link to="/wall-c" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-c' ? '1px solid white' : '1px solid transparent' }}>
         Wallpaper C
-      </Link>
-      <Link to="/wall-d" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-d' ? '1px solid white' : '1px solid transparent' }}>
-        Wallpaper D
       </Link>
     </div>
   )

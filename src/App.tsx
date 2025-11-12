@@ -22,8 +22,8 @@ function App() {
               <Route path="/wall-a" element={<WallA />} />
               <Route path="/wall-b" element={<WallB />} />
               <Route path="/wall-c" element={<WallC />} />
-              <Route path="/wall-d" element={<WallD />} />
-              <Route path="/" element={<Navigate to="/wall-a" replace />} />
+              <Route path="/aurora" element={<WallD />} />
+              <Route path="/" element={<Navigate to="/aurora" replace />} />
             </Routes>
             <ambientLight intensity={0.5} />
             {/* <OrbitControls enableZoom={true} /> */}

@@ -76,6 +76,7 @@ vec2 worleyF12(vec2 p) {
 
 void main() {
   vec2 uv = vUv;
+  vec2 distortedUv = vUv;
 
   // Click-based lensing effect (spherical distortion)
   for (int i = 0; i < 10; i++) {
@@ -84,7 +85,7 @@ void main() {
     float strength = uClickStrengths[i];
     if (strength < 0.1) continue;
     
-    vec2 toClick = uv - uClickPoints[i];
+    vec2 toClick = vUv - uClickPoints[i];
     float dist = length(toClick);
     
     // Only apply within radius
@@ -100,9 +101,12 @@ void main() {
       
       // Radial displacement (negative = magnify, positive = pinch)
       vec2 direction = normalize(toClick);
-      uv = uClickPoints[i] + direction * dist * (1.0 - lensStrength);
+      vec2 offset = direction * dist * lensStrength;
+      distortedUv -= offset;
     }
   }
+  
+  uv = distortedUv;
 
   // Slow rotation/drift (intensity only)
   float t = uTime * 0.15;  // base animation time

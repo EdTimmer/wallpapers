@@ -94,7 +94,7 @@ void main() {
     float strength = uClickStrengths[i];
     if(strength < 0.1) continue;
     
-    vec2 toClick = distortedUv - uClickPoints[i];
+    vec2 toClick = vUv - uClickPoints[i];
     float dist = length(toClick);
     
     // Only apply within radius
@@ -110,7 +110,8 @@ void main() {
       
       // Radial displacement (negative = magnify, positive = pinch)
       vec2 direction = normalize(toClick);
-      distortedUv = uClickPoints[i] + direction * dist * (1.0 - lensStrength);
+      vec2 offset = direction * dist * lensStrength;
+      distortedUv -= offset;
     }
   }
 

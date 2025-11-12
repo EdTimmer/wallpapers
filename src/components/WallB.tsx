@@ -74,7 +74,7 @@ export default function WallB() {
     })
   }))
 
-  const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion', () => ({
+  const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion B', () => ({
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
     distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01, label: 'Radius' },
     distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001, label: 'Strength' }
