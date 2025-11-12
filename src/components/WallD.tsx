@@ -48,18 +48,18 @@ export default function WallD() {
   }, [camera, size])
 
   const DEFAULTS = {
-    uSpeed: 0.3,
-    uIntensity: 0.6,
-    uBlend: 0.5,
-    uSaturation: 2.0,
-    uScale: 4.3,
-    uVerticalOffset: -0.2,
-    uFirstColor: '#7cff67',
-    uSecondColor: '#b19eef',
-    uThirdColor: '#5227ff',
-    fadeSpeed: 0.5,
-    distortionRadius: 0.25,
-    distortionStrength: 0.3
+    uSpeed: 0.47,
+    uIntensity: 0.8,
+    uBlend: 1.0,
+    uSaturation: 1.0,
+    uScale: 1.4,
+    uVerticalOffset: 0.05,
+    uFirstColor: '#ddff00',
+    uSecondColor: '#00b30c',
+    uThirdColor: '#00bfff',
+    fadeSpeed: 0.1,
+    distortionRadius: 0.01,
+    distortionStrength: 0.0
   }
 
   const [{ uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor }, setMain] = useControls('Wall D', () => ({
