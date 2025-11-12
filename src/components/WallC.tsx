@@ -20,19 +20,19 @@ export default function WallC() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    uNoise: 0.16,
+    uNoise: 0.3,
     uSpeed: 0.05,
-    uOscillationFrequency: 36.0,
+    uOscillationFrequency: 21.0,
     uIntensity: 0.1,
     uSecondColor: '#339e86',
     uThirdColor: '#18384e',
     fadeSpeed: 0.5,
-    distortionRadius: 0.05,
+    distortionRadius: 0.03,
     distortionStrength: 0.3
   }
 
   const [{ uNoise, uSpeed, uOscillationFrequency, uIntensity, uSecondColor, uThirdColor }, setMain] = useControls('Wall C', () => ({
-    uNoise: { value: DEFAULTS.uNoise, min: 0, max: 50, step: 0.1 },
+    uNoise: { value: DEFAULTS.uNoise, min: 0, max: 5, step: 0.1 },
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 1, step: 0.01 },
     uOscillationFrequency: { value: DEFAULTS.uOscillationFrequency, min: 0, max: 100, step: 1 },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 1, step: 0.01 },
@@ -57,7 +57,7 @@ export default function WallC() {
 
   const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion C', () => ({
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
-    distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01, label: 'Radius' },
+    distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.1, step: 0.01, label: 'Radius' },
     distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001, label: 'Strength' }
   }))
 

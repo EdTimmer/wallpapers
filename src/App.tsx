@@ -17,7 +17,7 @@ function App() {
           Use mouse interactions for effects
         </div>
 
-          <Canvas orthographic camera={{ position: [0, 0, 1], zoom: 20, far: 6 }}>
+          <Canvas orthographic camera={{ position: [0, 0, 10], zoom: 50 }}>
             <Routes>
               <Route path="/wall-a" element={<WallA />} />
               <Route path="/wall-b" element={<WallB />} />

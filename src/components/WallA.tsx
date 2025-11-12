@@ -19,8 +19,8 @@ export default function WallA() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    'Res X': 1920,
-    'Res Y': 3000,
+    'Res X': 6230,
+    'Res Y': 9440,
     'Anim Speed': 0.3,
     'Fade Speed': 0.5,
     'Click': '#ff00fd',
@@ -30,8 +30,8 @@ export default function WallA() {
   }
 
   const [{ 'Res X': resolutionX, 'Res Y': resolutionY, 'Anim Speed': animationSpeed, 'Fade Speed': fadeSpeed, Base: baseColor, 'Base Intensity': colorIntensity, Click: clickColor, 'Click Intensity': clickColorIntensity }, set] = useControls('CellsA', () => ({
-    'Res X': { value: DEFAULTS['Res X'], min: 100, max: 4000, step: 10 },
-    'Res Y': { value: DEFAULTS['Res Y'], min: 100, max: 4000, step: 10 },
+    'Res X': { value: DEFAULTS['Res X'], min: 1000, max: 10000, step: 10 },
+    'Res Y': { value: DEFAULTS['Res Y'], min: 1000, max: 14000, step: 10 },
     'Anim Speed': { value: DEFAULTS['Anim Speed'], min: 0, max: 5, step: 0.1 },
     'Base': { value: DEFAULTS['Base'] },    
     'Base Intensity': { value: DEFAULTS['Base Intensity'], min: 0, max: 1, step: 0.01 },

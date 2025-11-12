@@ -52,7 +52,7 @@ export default function WallD() {
     uIntensity: 0.6,
     uBlend: 0.5,
     uSaturation: 2.0,
-    uScale: 2.5,
+    uScale: 4.3,
     uVerticalOffset: -0.2,
     uFirstColor: '#7cff67',
     uSecondColor: '#b19eef',

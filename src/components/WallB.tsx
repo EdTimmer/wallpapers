@@ -20,7 +20,7 @@ export default function WallB() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    Scale: 10.0,
+    Scale: 24.0,
     RotationSpeed: 0.005,
     FBMAmplitude: 0.5,
     FBMPersistence: 0.5,
@@ -29,7 +29,7 @@ export default function WallB() {
     FinalPower: 4.0,
     Opacity: 0.6,
     fadeSpeed: 3.0,
-    distortionRadius: 0.06,
+    distortionRadius: 0.02,
     distortionStrength: 0.25,
     BaseColor: '#69e9ff'
   }
@@ -45,7 +45,7 @@ export default function WallB() {
     Opacity: uOpacity,
     BaseColor: baseColor
   }, setMain] = useControls('NoiseB', () => ({
-    Scale: { value: DEFAULTS.Scale, min: 0.1, max: 20, step: 0.1 },
+    Scale: { value: DEFAULTS.Scale, min: 5, max: 40, step: 0.1 },
     RotationSpeed: { value: DEFAULTS.RotationSpeed, min: -1.0, max: 1.0, step: 0.01 },
     FBMAmplitude: { value: DEFAULTS.FBMAmplitude, min: 0.0, max: 5.0, step: 0.05 },
     FBMPersistence: { value: DEFAULTS.FBMPersistence, min: 0.0, max: 4.0, step: 0.05 },
@@ -76,7 +76,7 @@ export default function WallB() {
 
   const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion B', () => ({
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
-    distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01, label: 'Radius' },
+    distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.001, max: 0.1, step: 0.001, label: 'Radius' },
     distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001, label: 'Strength' }
   }))
 
