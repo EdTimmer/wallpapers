@@ -8,6 +8,9 @@ function Navigation() {
       <Link to="/aurora" className="button" style={{ cursor: 'pointer', border: location.pathname === '/aurora' ? '1px solid white' : '1px solid transparent' }}>
         Aurora
       </Link>
+      <Link to="/prismatic-burst" className="button" style={{ cursor: 'pointer', border: location.pathname === '/prismatic-burst' ? '1px solid white' : '1px solid transparent' }}>
+        Prismatic Burst
+      </Link>
       <Link to="/wall-a" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-a' ? '1px solid white' : '1px solid transparent' }}>
         Wallpaper A
       </Link>
