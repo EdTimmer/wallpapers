@@ -14,6 +14,9 @@ function Navigation() {
       <Link to="/galaxy" className="button" style={{ cursor: 'pointer', border: location.pathname === '/galaxy' ? '1px solid white' : '1px solid transparent' }}>
         Galaxy
       </Link>
+      <Link to="/prismatic-galaxy" className="button" style={{ cursor: 'pointer', border: location.pathname === '/prismatic-galaxy' ? '1px solid white' : '1px solid transparent' }}>
+        Prismatic Galaxy
+      </Link>
 
       <Link to="/wall-a" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-a' ? '1px solid white' : '1px solid transparent' }}>
         Wallpaper A

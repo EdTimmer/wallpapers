@@ -8,6 +8,7 @@ import Navigation from './components/Navigation';
 import WallD from './components/WallD';
 import PrismaticBurst from './components/PrismaticBurst';
 import Galaxy from './components/Galaxy';
+import PrismaticGalaxy from './components/PrismaticGalaxy';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="/aurora" element={<WallD />} />
               <Route path="/prismatic-burst" element={<PrismaticBurst />} />
               <Route path="/galaxy" element={<Galaxy />} />
+              <Route path="/prismatic-galaxy" element={<PrismaticGalaxy />} />
               <Route path="/" element={<Navigate to="/aurora" replace />} />
             </Routes>
             <ambientLight intensity={0.5} />
