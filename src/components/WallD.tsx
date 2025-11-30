@@ -1,3 +1,6 @@
+// This component is an adaptation of Aurora.jsx from https://github.com/DavidHDev/react-bits,
+// Copyright (c) 2025 David Haz — licensed under the MIT + Commons Clause License Condition v1.0.
+
 import { useRef, useEffect, useMemo, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Mesh, ShaderMaterial, PerspectiveCamera, OrthographicCamera, Vector2, Raycaster } from 'three'

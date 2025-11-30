@@ -1,3 +1,6 @@
+// This component is an adaptation of PrismaticBurst.jsx from https://github.com/DavidHDev/react-bits,
+// Copyright (c) 2025 David Haz — licensed under the MIT + Commons Clause License Condition v1.0.
+
 import { useRef, useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RawShaderMaterial, Vector2, DataTexture, RGBAFormat, LinearFilter, ClampToEdgeWrapping, GLSL3 } from 'three'
