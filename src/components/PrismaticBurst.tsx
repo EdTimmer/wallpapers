@@ -1,7 +1,8 @@
 import { useRef, useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Mesh, ShaderMaterial, PerspectiveCamera, OrthographicCamera, Vector2, DataTexture, RGBAFormat, LinearFilter, ClampToEdgeWrapping } from 'three'
-import { useControls, button } from 'leva'
+import { RawShaderMaterial, Vector2, DataTexture, RGBAFormat, LinearFilter, ClampToEdgeWrapping, GLSL3 } from 'three'
+import { ScreenQuad } from '@react-three/drei'
+import { useControls, button, monitor } from 'leva'
 import vertexShader from '@shaders/prismaticBurst/vertex.glsl'
 import fragmentShader from '@shaders/prismaticBurst/fragment.glsl'
 
@@ -15,29 +16,15 @@ const hexToRgb = (hex: string): [number, number, number] => {
 }
 
 export default function PrismaticBurst() {
-  const meshRef = useRef<Mesh>(null!)
-  const materialRef = useRef<ShaderMaterial>(null!)
+  const materialRef = useRef<RawShaderMaterial>(null!)
   const mouseRef = useRef<Vector2>(new Vector2(0.5, 0.5))
-  const { camera, size, gl } = useThree()
+  const elapsedRef = useRef(0)
+  const fpsRef = useRef(0)
+  const frameMsRef = useRef(0)
+  const { size, gl } = useThree()
   const resolutionRef = useRef<Vector2>(
     new Vector2(size.width * gl.getPixelRatio(), size.height * gl.getPixelRatio())
   )
-
-  // Calculate plane dimensions to cover viewport
-  const planeDimensions = useMemo(() => {
-    if (camera instanceof OrthographicCamera) {
-      const width = (camera.right - camera.left) / (camera.zoom || 1)
-      const height = (camera.top - camera.bottom) / (camera.zoom || 1)
-      return [width, height]
-    } else if (camera instanceof PerspectiveCamera) {
-      const distance = Math.abs(camera.position.z)
-      const vFov = camera.fov * (Math.PI / 180)
-      const height = 2 * Math.tan(vFov / 2) * distance
-      const width = height * (size.width / size.height)
-      return [width, height]
-    }
-    return [60, 40]
-  }, [camera, size])
 
   const DEFAULTS = {
     uSpeed: 0.5,
@@ -47,10 +34,11 @@ export default function PrismaticBurst() {
     uOffset: [0, 0],
     uNoiseAmount: 0.8,
     uRayCount: 0,
+    pixelRatio: 0.7,
     colors: ['#ff0080', '#ff8800', '#ffff00', '#00ff88', '#0088ff', '#8800ff']
   }
 
-  const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount }, setMain] = useControls('Prismatic Burst', () => ({
+  const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, pixelRatio }, setMain] = useControls('Prismatic Burst', () => ({
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 3, step: 0.01, label: 'Speed' },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 5, step: 0.1, label: 'Intensity' },
     uAnimType: { 
@@ -61,6 +49,7 @@ export default function PrismaticBurst() {
     uDistort: { value: DEFAULTS.uDistort, min: 0, max: 10, step: 0.1, label: 'Distortion' },
     uNoiseAmount: { value: DEFAULTS.uNoiseAmount, min: 0, max: 1, step: 0.01, label: 'Noise' },
     uRayCount: { value: DEFAULTS.uRayCount, min: 0, max: 24, step: 1, label: 'Ray Count' },
+    pixelRatio: { value: DEFAULTS.pixelRatio, min: 0.5, max: 2, step: 0.05, label: 'Render DPR' },
     'Reset All': button(() => {
       setMain({
         uSpeed: DEFAULTS.uSpeed,
@@ -68,9 +57,15 @@ export default function PrismaticBurst() {
         uAnimType: DEFAULTS.uAnimType,
         uDistort: DEFAULTS.uDistort,
         uNoiseAmount: DEFAULTS.uNoiseAmount,
-        uRayCount: DEFAULTS.uRayCount
+        uRayCount: DEFAULTS.uRayCount,
+        pixelRatio: DEFAULTS.pixelRatio
       })
     })
+  }))
+
+  useControls('Diagnostics', () => ({
+    FPS: monitor(() => fpsRef.current, { graph: true, interval: 250 }),
+    FrameMs: monitor(() => frameMsRef.current, { graph: true, interval: 250 })
   }))
 
   // Create gradient texture from colors
@@ -126,33 +121,58 @@ export default function PrismaticBurst() {
   }, [uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount])
 
   useEffect(() => {
-    const dpr = gl.getPixelRatio()
-    resolutionRef.current.set(size.width * dpr, size.height * dpr)
+    const cappedDpr = Math.min(gl.getPixelRatio(), 2)
+    resolutionRef.current.set(size.width * cappedDpr, size.height * cappedDpr)
   }, [gl, size.height, size.width])
 
-  useFrame(({ clock, mouse }) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = clock.getElapsedTime()
-      
-      // Smooth mouse interpolation
-      const targetX = (mouse.x + 1) / 2
-      const targetY = (mouse.y + 1) / 2
-      mouseRef.current.x += (targetX - mouseRef.current.x) * 0.1
-      mouseRef.current.y += (targetY - mouseRef.current.y) * 0.1
-      
-      materialRef.current.uniforms.uMouse.value.copy(mouseRef.current)
+  useEffect(() => {
+    const originalDpr = gl.getPixelRatio()
+    const targetDpr = Math.min(originalDpr, pixelRatio)
+    if (targetDpr !== originalDpr) {
+      gl.setPixelRatio(targetDpr)
     }
+    return () => {
+      gl.setPixelRatio(originalDpr)
+    }
+  }, [gl, pixelRatio])
+
+  useFrame(({ mouse, size, gl }, delta) => {
+    if (!materialRef.current) return
+    const uniforms = materialRef.current.uniforms
+
+    elapsedRef.current += delta
+    uniforms.uTime.value = elapsedRef.current
+    fpsRef.current = 1 / Math.max(delta, 1e-6)
+    frameMsRef.current = delta * 1000
+
+    const cappedDpr = Math.min(gl.getPixelRatio(), 2)
+    const width = size.width * cappedDpr
+    const height = size.height * cappedDpr
+    if (resolutionRef.current.x !== width || resolutionRef.current.y !== height) {
+      resolutionRef.current.set(width, height)
+    }
+
+    const targetX = (mouse.x + 1) / 2
+    const targetY = (mouse.y + 1) / 2
+    const lerpFactor = 0.1
+    mouseRef.current.x += (targetX - mouseRef.current.x) * lerpFactor
+    mouseRef.current.y += (targetY - mouseRef.current.y) * lerpFactor
+
+    uniforms.uMouse.value.copy(mouseRef.current)
+    uniforms.uResolution.value.copy(resolutionRef.current)
   })
 
   return (
-    <mesh ref={meshRef}>
-      <planeGeometry args={planeDimensions as [number, number]} />
-      <shaderMaterial
+    <ScreenQuad>
+      <rawShaderMaterial
         ref={materialRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms}
+        glslVersion={GLSL3}
+        depthWrite={false}
+        depthTest={false}
       />
-    </mesh>
+    </ScreenQuad>
   )
 }

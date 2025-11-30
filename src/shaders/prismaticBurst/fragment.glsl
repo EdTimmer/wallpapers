@@ -1,3 +1,5 @@
+// This shader is a translation of PrismaticBurst.jsx from https://github.com/DavidHDev/react-bits,
+// Copyright (c) 2025 David Haz — licensed under the MIT + Commons Clause License Condition v1.0.
 precision highp float;
 precision highp int;
 
@@ -15,7 +17,8 @@ uniform sampler2D uGradient;
 uniform float uNoiseAmount;
 uniform int   uRayCount;
 
-varying vec2 vUv;
+in vec2 vUv;
+out vec4 fragColor;
 
 float hash21(vec2 p){
     p = floor(p);
@@ -51,7 +54,8 @@ float edgeFade(vec2 frag, vec2 res, vec2 offset){
     s = pow(s, 1.5);
     float tail = 1.0 - pow(1.0 - s, 2.0);
     s = mix(s, tail, 0.2);
-    float dn = (layeredNoise(frag * 0.15) - 0.5) * 0.0015 * s;
+    float dnStrength = clamp(uNoiseAmount, 0.0, 1.0);
+    float dn = (layeredNoise(frag * 0.15) - 0.5) * 0.0015 * s * dnStrength;
     return clamp(s + dn, 0.0, 1.0);
 }
 
@@ -61,7 +65,7 @@ mat3 rotZ(float a){ float c = cos(a), s = sin(a); return mat3(c,-s,0.0, s,c,0.0,
 
 vec3 sampleGradient(float t){
     t = clamp(t, 0.0, 1.0);
-    return texture2D(uGradient, vec2(t, 0.5)).rgb;
+    return texture(uGradient, vec2(t, 0.5)).rgb;
 }
 
 vec2 rot2(vec2 v, float a){
@@ -77,8 +81,7 @@ float bendAngle(vec3 q, float t){
 }
 
 void main(){
-    // Convert UV to pixel coordinates for the shader logic
-    vec2 frag = vUv * uResolution;
+    vec2 frag = gl_FragCoord.xy;
     float t = uTime * uSpeed;
     float jitterAmp = 0.1 * clamp(uNoiseAmount, 0.0, 1.0);
     vec3 dir = rayDir(frag, uResolution, uOffset, 1.0);
@@ -158,5 +161,5 @@ void main(){
     col *= edgeFade(frag, uResolution, uOffset);
     col *= uIntensity;
 
-    gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+    fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
