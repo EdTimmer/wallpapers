@@ -1,5 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { useMemo } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Canvas } from '@react-three/fiber';
+import { Leva } from 'leva'
 import './App.css'
 import WallC from './components/WallC';
 import WallB from './components/WallB';
@@ -11,10 +13,20 @@ import Galaxy from './components/Galaxy';
 import PrismaticGalaxy from './components/PrismaticGalaxy';
 
 function App() {
+  const location = useLocation()
+  const themedRoutes = ['/prismatic-burst', '/galaxy', '/prismatic-galaxy']
+  const useWideControls = themedRoutes.some((route) => location.pathname.startsWith(route))
+  const wideTheme = useMemo(() => ({
+    sizes: {
+      rootWidth: '350px'
+    }
+  }), [])
+
   return (
     <>
       <div className="app-container">
         <Navigation />
+        <Leva theme={useWideControls ? wideTheme : undefined} />
         
         <div className="instructions">
           Use mouse interactions for effects
