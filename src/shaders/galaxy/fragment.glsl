@@ -22,6 +22,7 @@ uniform float uRepulsionStrength;
 uniform float uMouseActiveFactor;
 uniform float uAutoCenterRepulsion;
 uniform bool uTransparent;
+uniform float uOpacity;
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -151,8 +152,8 @@ void main() {
         float alpha = length(col);
         alpha = smoothstep(0.0, 0.3, alpha);
         alpha = min(alpha, 1.0);
-        fragColor = vec4(col, alpha);
+        fragColor = vec4(col, alpha * uOpacity);
     } else {
-        fragColor = vec4(col, 1.0);
+        fragColor = vec4(col, uOpacity);
     }
 }

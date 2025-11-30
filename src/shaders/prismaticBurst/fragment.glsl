@@ -16,6 +16,7 @@ uniform vec2  uOffset;
 uniform sampler2D uGradient;
 uniform float uNoiseAmount;
 uniform int   uRayCount;
+uniform float uOpacity;
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -161,5 +162,5 @@ void main(){
     col *= edgeFade(frag, uResolution, uOffset);
     col *= uIntensity;
 
-    fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+    fragColor = vec4(clamp(col, 0.0, 1.0), uOpacity);
 }

@@ -38,6 +38,7 @@ const DEFAULTS = {
   uOffset: [0, 0],
   uNoiseAmount: 0.8,
   uRayCount: 0,
+  uOpacity: 1.0,
   pixelRatio: 0.7
 } as const
 
@@ -198,7 +199,7 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
     return []
   }, [colors])
 
-  const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, pixelRatio }, setMain] = useControls('Prismatic Burst', () => ({
+  const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, uOpacity, pixelRatio }, setMain] = useControls('Prismatic Burst', () => ({
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 3, step: 0.01, label: 'Speed' },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 5, step: 0.1, label: 'Intensity' },
     uAnimType: { 
@@ -209,6 +210,7 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
     uDistort: { value: DEFAULTS.uDistort, min: 0, max: 10, step: 0.1, label: 'Distortion' },
     uNoiseAmount: { value: DEFAULTS.uNoiseAmount, min: 0, max: 1, step: 0.01, label: 'Noise' },
     uRayCount: { value: DEFAULTS.uRayCount, min: 0, max: 24, step: 1, label: 'Ray Count' },
+    uOpacity: { value: DEFAULTS.uOpacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
     pixelRatio: { value: DEFAULTS.pixelRatio, min: 0.5, max: 2, step: 0.05, label: 'Render DPR' },
     'Reset All': button(() => {
       setMain({
@@ -218,6 +220,7 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
         uDistort: DEFAULTS.uDistort,
         uNoiseAmount: DEFAULTS.uNoiseAmount,
         uRayCount: DEFAULTS.uRayCount,
+        uOpacity: DEFAULTS.uOpacity,
         pixelRatio: DEFAULTS.pixelRatio
       })
       // Reset colors using Leva store - set each color individually
@@ -274,6 +277,7 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
       uOffset: { value: new Vector2(0, 0) },
       uNoiseAmount: { value: DEFAULTS.uNoiseAmount },
       uRayCount: { value: DEFAULTS.uRayCount },
+      uOpacity: { value: DEFAULTS.uOpacity },
       uColorCount: { value: 0 }, // Start with 0 (spectral mode), updated in useFrame
       uGradient: { value: gradientTexture }
     }),
@@ -293,8 +297,9 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
       materialRef.current.uniforms.uDistort.value = uDistort
       materialRef.current.uniforms.uNoiseAmount.value = uNoiseAmount
       materialRef.current.uniforms.uRayCount.value = uRayCount
+      materialRef.current.uniforms.uOpacity.value = uOpacity
     }
-  }, [uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount])
+  }, [uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, uOpacity])
 
   useEffect(() => {
     const cappedDpr = Math.min(gl.getPixelRatio(), 2)
@@ -349,6 +354,7 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
         fragmentShader={fragmentShader}
         uniforms={uniforms}
         glslVersion={GLSL3}
+        transparent={true}
         depthWrite={false}
         depthTest={false}
       />

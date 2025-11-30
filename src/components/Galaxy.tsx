@@ -28,6 +28,7 @@ type GalaxyProps = {
   rotationSpeed?: number
   autoCenterRepulsion?: number
   transparent?: boolean
+  opacity?: number
 }
 
 export default function Galaxy({
@@ -46,7 +47,8 @@ export default function Galaxy({
   twinkleIntensity = 0.3,
   rotationSpeed = 0.1,
   autoCenterRepulsion = 0,
-  transparent = true
+  transparent = true,
+  opacity = 1.0
 }: GalaxyProps) {
   const materialRef = useRef<RawShaderMaterial | null>(null)
   const { gl, size } = useThree()
@@ -85,6 +87,7 @@ export default function Galaxy({
       rotationSpeed: rotationSpeedCtrl,
       autoCenterRepulsion: autoCenterRepulsionCtrl,
       transparent: transparentCtrl,
+      opacity: opacityCtrl,
       pixelRatio: pixelRatioCtrl
     },
     setControls
@@ -109,6 +112,7 @@ export default function Galaxy({
       rotationSpeed: { value: rotationSpeed, min: 0, max: 1, step: 0.01, label: 'Auto Rotation Speed' },
       autoCenterRepulsion: { value: autoCenterRepulsion, min: 0, max: 5, step: 0.1, label: 'Auto Center Repulsion' },
       transparent: { value: transparent, label: 'Transparent Background' },
+      opacity: { value: opacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
       pixelRatio: { value: DEFAULT_PIXEL_RATIO, min: 0.3, max: 2, step: 0.05, label: 'Render DPR' },
       'Reset Galaxy': button(() => {
         setControls({
@@ -130,6 +134,7 @@ export default function Galaxy({
           rotationSpeed,
           autoCenterRepulsion,
           transparent,
+          opacity,
           pixelRatio: DEFAULT_PIXEL_RATIO
         })
       })
@@ -152,7 +157,8 @@ export default function Galaxy({
       twinkleIntensity,
       rotationSpeed,
       autoCenterRepulsion,
-      transparent
+      transparent,
+      opacity
     ]
   )
 
@@ -175,7 +181,8 @@ export default function Galaxy({
       uRepulsionStrength: { value: 2 },
       uMouseActiveFactor: { value: 0 },
       uAutoCenterRepulsion: { value: 0 },
-      uTransparent: { value: true }
+      uTransparent: { value: true },
+      uOpacity: { value: 1.0 }
     }),
     []
   )
@@ -218,6 +225,7 @@ export default function Galaxy({
     u.uRepulsionStrength.value = repulsionStrengthCtrl
     u.uAutoCenterRepulsion.value = autoCenterRepulsionCtrl
     u.uTransparent.value = transparentCtrl
+    u.uOpacity.value = opacityCtrl
     materialRef.current.transparent = transparentCtrl
   }, [
     focalX,
@@ -234,7 +242,8 @@ export default function Galaxy({
     rotationSpeedCtrl,
     repulsionStrengthCtrl,
     autoCenterRepulsionCtrl,
-    transparentCtrl
+    transparentCtrl,
+    opacityCtrl
   ])
 
   useEffect(() => {

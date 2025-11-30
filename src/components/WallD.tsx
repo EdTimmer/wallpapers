@@ -65,7 +65,7 @@ export default function WallD() {
     distortionStrength: 0.0
   }
 
-  const [{ uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor }, setMain] = useControls('Wall D', () => ({
+  const [{ uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor }, setMain] = useControls('Aurora', () => ({
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 3, step: 0.01, label: 'Speed' },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 3, step: 0.1, label: 'Amplitude' },
     uBlend: { value: DEFAULTS.uBlend, min: 0, max: 1, step: 0.01, label: 'Blend' },
