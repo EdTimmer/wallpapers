@@ -5,20 +5,95 @@ import { useRef, useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RawShaderMaterial, Vector2, DataTexture, RGBAFormat, LinearFilter, ClampToEdgeWrapping, GLSL3 } from 'three'
 import { ScreenQuad } from '@react-three/drei'
-import { useControls, button, monitor } from 'leva'
+import { useControls, button, monitor, levaStore } from 'leva'
 import vertexShader from '@shaders/prismaticBurst/vertex.glsl'
 import fragmentShader from '@shaders/prismaticBurst/fragment.glsl'
 
+type PrismaticBurstProps = {
+  colors?: string[]
+}
+
+type ColorObjectValue = {
+  r: number
+  g: number
+  b: number
+  a?: number
+}
+
+type ColorControlValue = string | ColorObjectValue
+
+const OPTIONAL_COLOR_DISABLED = '#000000' as const
+
+const toColorTuple = (source?: readonly string[]): [string, string, string] => [
+  source?.[0] ?? OPTIONAL_COLOR_DISABLED,
+  source?.[1] ?? OPTIONAL_COLOR_DISABLED,
+  source?.[2] ?? OPTIONAL_COLOR_DISABLED
+]
+
+const DEFAULTS = {
+  uSpeed: 0.5,
+  uIntensity: 2.0,
+  uAnimType: 1, // rotate3d
+  uDistort: 0,
+  uOffset: [0, 0],
+  uNoiseAmount: 0.8,
+  uRayCount: 0,
+  pixelRatio: 0.7
+} as const
+
 // Helper function to convert hex color to RGB array
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
+
 const hexToRgb = (hex: string): [number, number, number] => {
-  const cleanHex = hex.replace('#', '')
-  const r = parseInt(cleanHex.substring(0, 2), 16) / 255
-  const g = parseInt(cleanHex.substring(2, 4), 16) / 255
-  const b = parseInt(cleanHex.substring(4, 6), 16) / 255
+  let cleanHex = hex.trim().replace('#', '')
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex
+      .split('')
+      .map((char) => char + char)
+      .join('')
+  }
+  if (cleanHex.length !== 6) return [1, 1, 1]
+  const intVal = parseInt(cleanHex, 16)
+  if (Number.isNaN(intVal)) return [1, 1, 1]
+  const r = ((intVal >> 16) & 255) / 255
+  const g = ((intVal >> 8) & 255) / 255
+  const b = (intVal & 255) / 255
   return [r, g, b]
 }
 
-export default function PrismaticBurst() {
+const rgbStringToRgb = (rgbString: string): [number, number, number] => {
+  const match = rgbString.match(/rgba?\(([^)]+)\)/i)
+  if (!match) return [1, 1, 1]
+  const [r = 255, g = 255, b = 255] = match[1]
+    .split(',')
+    .slice(0, 3)
+    .map((value) => parseFloat(value.trim()))
+  return [clamp01(r / 255), clamp01(g / 255), clamp01(b / 255)]
+}
+
+const normalizeColorComponent = (component: number | undefined) => {
+  if (typeof component !== 'number' || Number.isNaN(component)) return 0
+  return component > 1 ? clamp01(component / 255) : clamp01(component)
+}
+
+const colorValueToRgb = (value?: ColorControlValue): [number, number, number] => {
+  if (!value) return [1, 1, 1]
+  if (typeof value === 'string') {
+    const color = value.trim()
+    if (!color) return [1, 1, 1]
+    if (color.startsWith('#')) return hexToRgb(color)
+    if (color.startsWith('rgb')) return rgbStringToRgb(color)
+    return hexToRgb(color)
+  }
+
+  return [
+    normalizeColorComponent(value.r),
+    normalizeColorComponent(value.g),
+    normalizeColorComponent(value.b)
+  ]
+}
+
+export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
   const materialRef = useRef<RawShaderMaterial>(null!)
   const mouseRef = useRef<Vector2>(new Vector2(0.5, 0.5))
   const elapsedRef = useRef(0)
@@ -29,17 +104,99 @@ export default function PrismaticBurst() {
     new Vector2(size.width * gl.getPixelRatio(), size.height * gl.getPixelRatio())
   )
 
-  const DEFAULTS = {
-    uSpeed: 0.5,
-    uIntensity: 2.0,
-    uAnimType: 1, // rotate3d
-    uDistort: 0,
-    uOffset: [0, 0],
-    uNoiseAmount: 0.8,
-    uRayCount: 0,
-    pixelRatio: 0.7,
-    colors: ['#ff0080', '#ff8800', '#ffff00', '#00ff88', '#0088ff', '#8800ff']
+  const gradientTextureRef = useRef<DataTexture | null>(null)
+
+  // Store current color values in ref (not actively used but kept for potential future use)
+  const colorValuesRef = useRef<[ColorControlValue, ColorControlValue, ColorControlValue]>([
+    OPTIONAL_COLOR_DISABLED,
+    OPTIONAL_COLOR_DISABLED,
+    OPTIONAL_COLOR_DISABLED
+  ])
+
+  const colorControls = useControls(
+    'Prismatic Burst Colors',
+    {
+      color1: { value: OPTIONAL_COLOR_DISABLED, label: 'Color 1' },
+      color2: { value: OPTIONAL_COLOR_DISABLED, label: 'Color 2' },
+      color3: { value: OPTIONAL_COLOR_DISABLED, label: 'Color 3' }
+    }
+  )
+
+  // Store the current color count in a ref for useFrame
+  const colorCountRef = useRef(0)
+
+  // Update texture when colors change - recreate it like the original
+  useEffect(() => {
+    if (!gradientTextureRef.current || !materialRef.current) {
+      return
+    }
+    
+    const newColors: [ColorControlValue, ColorControlValue, ColorControlValue] = [
+      colorControls.color1,
+      colorControls.color2,
+      colorControls.color3
+    ]
+    
+    colorValuesRef.current = newColors
+    
+    // Filter to only active (non-black) colors
+    const activeColors = newColors.filter(c => isColorActive(c))
+    
+    if (activeColors.length === 0) {
+      // No custom colors - use spectral mode
+      colorCountRef.current = 0
+    } else {
+      // Recreate texture with only active colors (matching original react-bits behavior)
+      // Texture width = number of active colors for proper gradient sampling
+      const count = activeColors.length
+      const data = new Uint8Array(count * 4)
+      
+      for (let i = 0; i < count; i++) {
+        const rgb = colorValueToRgb(activeColors[i])
+        data[i * 4 + 0] = Math.round(rgb[0] * 255)
+        data[i * 4 + 1] = Math.round(rgb[1] * 255)
+        data[i * 4 + 2] = Math.round(rgb[2] * 255)
+        data[i * 4 + 3] = 255
+      }
+      
+      // Create new texture with width matching active color count
+      const newTexture = new DataTexture(data, count, 1, RGBAFormat)
+      newTexture.minFilter = LinearFilter
+      newTexture.magFilter = LinearFilter
+      newTexture.wrapS = ClampToEdgeWrapping
+      newTexture.wrapT = ClampToEdgeWrapping
+      newTexture.needsUpdate = true
+      
+      // Update the ref and material uniform
+      gradientTextureRef.current = newTexture
+      materialRef.current.uniforms.uGradient.value = newTexture
+      
+      // Store color count
+      colorCountRef.current = count
+    }
+    
+  }, [colorControls.color1, colorControls.color2, colorControls.color3])
+
+  // Helper to check if a color is black (disabled)
+  const isColorActive = (color: ColorControlValue): boolean => {
+    if (typeof color === 'string') {
+      const normalized = color.trim().toLowerCase()
+      return normalized !== '#000000' && normalized !== '#000' && normalized !== 'black'
+    }
+    const r = normalizeColorComponent(color.r)
+    const g = normalizeColorComponent(color.g)
+    const b = normalizeColorComponent(color.b)
+    return r > 0 || g > 0 || b > 0
   }
+
+  // Initialize gradient colors from props only (used for initial texture creation)
+  const gradientColors = useMemo<ColorControlValue[]>(() => {
+    if (Array.isArray(colors) && colors.length > 0) {
+      return colors
+    }
+    // Empty array = spectral mode by default (no custom colors from props)
+    return []
+  }, [colors])
 
   const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, pixelRatio }, setMain] = useControls('Prismatic Burst', () => ({
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 3, step: 0.01, label: 'Speed' },
@@ -63,27 +220,37 @@ export default function PrismaticBurst() {
         uRayCount: DEFAULTS.uRayCount,
         pixelRatio: DEFAULTS.pixelRatio
       })
+      // Reset colors using Leva store - set each color individually
+      const resetColors = toColorTuple(colors)
+      levaStore.setValueAtPath('Prismatic Burst Colors.color1', resetColors[0], false)
+      levaStore.setValueAtPath('Prismatic Burst Colors.color2', resetColors[1], false)
+      levaStore.setValueAtPath('Prismatic Burst Colors.color3', resetColors[2], false)
     })
   }))
 
   useControls('Diagnostics', () => ({
     FPS: monitor(() => fpsRef.current, { graph: true, interval: 250 }),
     FrameMs: monitor(() => frameMsRef.current, { graph: true, interval: 250 })
-  }))
+  }),
+  { collapsed: true })
 
-  // Create gradient texture from colors
+  // Create initial gradient texture (will be recreated in useEffect when colors change)
   const gradientTexture = useMemo(() => {
-    const colors = DEFAULTS.colors
-    const width = colors.length
+    // Start with 3-slot texture initialized to black for Leva color controls
+    const defaultColors = [OPTIONAL_COLOR_DISABLED, OPTIONAL_COLOR_DISABLED, OPTIONAL_COLOR_DISABLED]
+    const colorsToUse = gradientColors.length > 0 ? gradientColors : defaultColors
+    const width = 3
     const data = new Uint8Array(width * 4)
     
-    colors.forEach((color, i) => {
-      const rgb = hexToRgb(color)
+    // Fill with provided colors or defaults
+    for (let i = 0; i < width; i++) {
+      const color = colorsToUse[i] || OPTIONAL_COLOR_DISABLED
+      const rgb = colorValueToRgb(color)
       data[i * 4 + 0] = Math.round(rgb[0] * 255)
       data[i * 4 + 1] = Math.round(rgb[1] * 255)
       data[i * 4 + 2] = Math.round(rgb[2] * 255)
       data[i * 4 + 3] = 255
-    })
+    }
 
     const texture = new DataTexture(data, width, 1, RGBAFormat)
     texture.minFilter = LinearFilter
@@ -91,8 +258,9 @@ export default function PrismaticBurst() {
     texture.wrapS = ClampToEdgeWrapping
     texture.wrapT = ClampToEdgeWrapping
     texture.needsUpdate = true
+    gradientTextureRef.current = texture
     return texture
-  }, [])
+  }, [gradientColors])
 
   const uniforms = useMemo(
     () => ({
@@ -106,11 +274,16 @@ export default function PrismaticBurst() {
       uOffset: { value: new Vector2(0, 0) },
       uNoiseAmount: { value: DEFAULTS.uNoiseAmount },
       uRayCount: { value: DEFAULTS.uRayCount },
-      uColorCount: { value: DEFAULTS.colors.length },
+      uColorCount: { value: 0 }, // Start with 0 (spectral mode), updated in useFrame
       uGradient: { value: gradientTexture }
     }),
     [gradientTexture]
   )
+
+  useEffect(() => {
+    if (!materialRef.current) return
+    materialRef.current.uniforms.uGradient.value = gradientTexture
+  }, [gradientTexture])
 
   useEffect(() => {
     if (materialRef.current) {
@@ -163,6 +336,9 @@ export default function PrismaticBurst() {
 
     uniforms.uMouse.value.copy(mouseRef.current)
     uniforms.uResolution.value.copy(resolutionRef.current)
+    
+    // Update color count from ref - this runs every frame without blocking
+    uniforms.uColorCount.value = colorCountRef.current
   })
 
   return (
