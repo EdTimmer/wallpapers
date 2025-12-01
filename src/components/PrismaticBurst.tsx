@@ -36,10 +36,10 @@ const DEFAULTS = {
   uAnimType: 1, // rotate3d
   uDistort: 0,
   uOffset: [0, 0],
-  uNoiseAmount: 0.8,
+  uNoiseAmount: 0.05,
   uRayCount: 0,
   uOpacity: 1.0,
-  pixelRatio: 0.7
+  pixelRatio: 0.5
 } as const
 
 // Helper function to convert hex color to RGB array
