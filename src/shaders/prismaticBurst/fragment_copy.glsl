@@ -51,8 +51,8 @@ float edgeFade(vec2 frag, vec2 res, vec2 offset){
     float r = length(toC) / (0.5 * min(res.x, res.y));
     float x = clamp(r, 0.0, 1.0);
     float q = x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
-    float s = q * 0.3; // float s = q * 0.5;
-    // s = pow(s, 1.5);
+    float s = q * 0.5;
+    s = pow(s, 1.5);
     float tail = 1.0 - pow(1.0 - s, 2.0);
     s = mix(s, tail, 0.2);
     float dnStrength = clamp(uNoiseAmount, 0.0, 1.0);
@@ -107,7 +107,7 @@ void main(){
 
     for (int i = 0; i < 44; ++i) {
         vec3 P = marchT * dir;
-        P.z -= 2.0;
+        P.z -= 0.5;
         float rad = length(P);
         vec3 Pl = P * (10.0 / max(rad, 1e-6));
 
