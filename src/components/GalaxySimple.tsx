@@ -7,7 +7,8 @@ import { ScreenQuad } from '@react-three/drei'
 import { RawShaderMaterial, Vector2, Vector3, GLSL3 } from 'three'
 import { button, useControls } from 'leva'
 import vertexShader from '@shaders/galaxy/vertex.glsl'
-import fragmentShader from '@shaders/galaxy/fragment_simple.glsl'
+// import fragmentShader from '@shaders/galaxy/fragment_simple.glsl'
+import fragmentShader from '@shaders/galaxy/fragment_spikes.glsl'
 
 const DEFAULT_PIXEL_RATIO = 0.7
 
