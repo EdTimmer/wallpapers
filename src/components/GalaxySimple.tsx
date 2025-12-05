@@ -41,7 +41,7 @@ export default function GalaxySimple({
   disableAnimation = false,
   speed = 1.0,
   mouseInteraction = true,
-  glowIntensity = 0.6,
+  glowIntensity = 0.5,
   saturation = 0.0,
   mouseRepulsion = false,
   repulsionStrength = 2,

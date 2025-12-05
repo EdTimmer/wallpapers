@@ -58,10 +58,9 @@ vec3 hsv2rgb(vec3 c) {
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-// Five-circle cross pattern using SDF union with rotation
-float Star(vec2 uv, float flare, float rotation) {
+// Star with optional twinkle cross shape
+float Star(vec2 uv, float flare, float rotation, float twinkleType, float seed, float time) {
     float radius = 0.02 * uGlowIntensity;
-    float offset = radius * 0.7; // Adjust this to control overlap amount
     
     // Apply rotation to UV coordinates
     float c = cos(rotation);
@@ -69,23 +68,47 @@ float Star(vec2 uv, float flare, float rotation) {
     mat2 rot = mat2(c, -s, s, c);
     uv = rot * uv;
     
-    // SDF for each circle (distance to surface)
-    float d0 = length(uv) - radius;
-    float d1 = length(uv - vec2(offset, 0.0)) - radius;
-    float d2 = length(uv - vec2(-offset, 0.0)) - radius;
-    float d3 = length(uv - vec2(0.0, offset)) - radius;
-    float d4 = length(uv - vec2(0.0, -offset)) - radius;
+    float star;
     
-    // Smooth minimum (union) of all five circles - creates unified shape
-    float k = 0.1; // Smoothness factor
-    float d = d0;
-    d = min(d, d1);
-    d = min(d, d2);
-    d = min(d, d3);
-    d = min(d, d4);
-    
-    // Core star brightness with smooth falloff
-    float star = smoothstep(radius * 0.5, -radius * 0.5, d);
+    if (twinkleType > 0.7) {
+        // Thin cross / twinkle shape with animated arm lengths
+        float thickness = radius * 0.3;
+        float baseLength = radius * 4.0;
+        
+        // Animate only the right arm, others stay static
+        float rightAnim = tris(time * 0.3 + seed * 1.0) * 0.5 + 0.75;
+        float leftAnim = 1.0;
+        float upAnim = 1.0;
+        float downAnim = 1.0;
+        
+        // Create four separate arms with animated lengths
+        float right = smoothstep(thickness, 0.0, abs(uv.y)) * smoothstep(baseLength * rightAnim, 0.0, uv.x) * step(0.0, uv.x);
+        float left = smoothstep(thickness, 0.0, abs(uv.y)) * smoothstep(baseLength * leftAnim, 0.0, -uv.x) * step(0.0, -uv.x);
+        float up = smoothstep(thickness, 0.0, abs(uv.x)) * smoothstep(baseLength * upAnim, 0.0, uv.y) * step(0.0, uv.y);
+        float down = smoothstep(thickness, 0.0, abs(uv.x)) * smoothstep(baseLength * downAnim, 0.0, -uv.y) * step(0.0, -uv.y);
+        
+        star = max(max(right, left), max(up, down));
+    } else {
+        // Five-circle cross pattern
+        float offset = radius * 0.7;
+        
+        // SDF for each circle (distance to surface)
+        float d0 = length(uv) - radius;
+        float d1 = length(uv - vec2(offset, 0.0)) - radius;
+        float d2 = length(uv - vec2(-offset, 0.0)) - radius;
+        float d3 = length(uv - vec2(0.0, offset)) - radius;
+        float d4 = length(uv - vec2(0.0, -offset)) - radius;
+        
+        // Smooth minimum (union) of all five circles - creates unified shape
+        float d = d0;
+        d = min(d, d1);
+        d = min(d, d2);
+        d = min(d, d3);
+        d = min(d, d4);
+        
+        // Core star brightness with smooth falloff
+        star = smoothstep(radius * 0.5, -radius * 0.5, d);
+    }
     
     return star * 5.0;
 }
@@ -110,7 +133,10 @@ vec3 StarLayer(vec2 uv) {
             // Generate random rotation for each star based on its seed
             float rotation = Hash21(si + 5.0) * 6.28318; // 0 to 2*PI
             
-            float star = Star(gv - offset - pad, flareSize, rotation);
+            // Decide if this star should be a twinkle cross (30% chance)
+            float twinkleType = Hash21(si + 10.0);
+            
+            float star = Star(gv - offset - pad, flareSize, rotation, twinkleType, seed, uTime * uSpeed);
             vec3 color = vec3(1.0); // White stars
 
             float twinkle = trisn(uTime * uSpeed + seed * 6.2831) * 0.5 + 1.0;
