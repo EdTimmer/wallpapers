@@ -41,7 +41,7 @@ function App() {
               <Route path="/aurora" element={<WallD />} />
               <Route path="/prismatic-burst" element={<PrismaticBurst />} />
               <Route path="/galaxy" element={<Galaxy />} />
-              <Route path="/squares" element={<Squares speed={0.31} squareSize={71} direction='up' borderColor='#535353' hoverFillColor='#222' />} />
+              <Route path="/squares" element={<Squares speed={0.31} squareSize={71} direction='up' borderColor='#535353' />} />
               <Route path="/prismatic-galaxy" element={<PrismaticGalaxy />} />
               <Route path="/" element={<Navigate to="/aurora" replace />} />
             </Routes>
