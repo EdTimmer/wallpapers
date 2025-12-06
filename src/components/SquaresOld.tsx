@@ -6,7 +6,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { ScreenQuad } from '@react-three/drei';
 import { RawShaderMaterial, Vector2, Color, GLSL3 } from 'three';
 import { button, useControls } from 'leva';
-import fragmentShader from '@shaders/squares/fragment_physical_pixels.glsl';
+import fragmentShader from '@shaders/squares/fragment.glsl';
 import vertexShader from '@shaders/squares/vertex.glsl';
 
 interface SquaresProps {
@@ -14,18 +14,24 @@ interface SquaresProps {
   speed?: number;
   borderColor?: string;
   squareSize?: number;
+  hoverFillColor?: string;
 }
 
-export default function Squares({
+export default function SquaresOld({
   direction = 'right',
   speed = 1,
   borderColor = '#999999',
-  squareSize = 40
+  squareSize = 40,
+  hoverFillColor = '#222222'
 }: SquaresProps) {
   const materialRef = useRef<RawShaderMaterial | null>(null);
   const { size } = useThree();
 
+  const targetMousePos = useRef(new Vector2(0.5, 0.5));
+  const smoothMousePos = useRef(new Vector2(0.5, 0.5));
   const resolutionRef = useRef(new Vector2(size.width, size.height));
+  
+  // Track gridOffset like the original does
   const gridOffset = useRef(new Vector2(0, 0));
 
   const [
@@ -33,7 +39,8 @@ export default function Squares({
       direction: directionCtrl,
       speed: speedCtrl,
       borderColor: borderColorCtrl,
-      squareSize: squareSizeCtrl
+      squareSize: squareSizeCtrl,
+      hoverFillColor: hoverFillColorCtrl
     },
     setControls
   ] = useControls(
@@ -62,19 +69,24 @@ export default function Squares({
         step: 5,
         label: 'Square Size'
       },
+      hoverFillColor: {
+        value: hoverFillColor,
+        label: 'Hover Fill Color'
+      },
       'Reset Squares': button(() => {
         setControls({
           direction,
           speed,
           borderColor,
-          squareSize
+          squareSize,
+          hoverFillColor
         });
       })
     }),
-    [direction, speed, borderColor, squareSize]
+    [direction, speed, borderColor, squareSize, hoverFillColor]
   );
 
-  // Convert hex color to RGB
+  // Convert hex colors to RGB
   const borderColorRGB = useMemo(() => {
     const hex = borderColorCtrl.replace('#', '');
     return new Color(
@@ -84,11 +96,22 @@ export default function Squares({
     );
   }, [borderColorCtrl]);
 
+  const hoverColorRGB = useMemo(() => {
+    const hex = hoverFillColorCtrl.replace('#', '');
+    return new Color(
+      parseInt(hex.substr(0, 2), 16) / 255,
+      parseInt(hex.substr(2, 2), 16) / 255,
+      parseInt(hex.substr(4, 2), 16) / 255
+    );
+  }, [hoverFillColorCtrl]);
+
   const uniforms = useMemo(
     () => ({
       uResolution: { value: new Vector2(size.width, size.height) },
+      uMouse: { value: new Vector2(0.5, 0.5) },
       uSquareSize: { value: 40 },
       uBorderColor: { value: new Color(0.6, 0.6, 0.6) },
+      uHoverFillColor: { value: new Color(0.13, 0.13, 0.13) },
       uGridOffset: { value: new Vector2(0, 0) },
       uPixelRatio: { value: window.devicePixelRatio || 1.0 }
     }),
@@ -101,9 +124,10 @@ export default function Squares({
     const { uniforms: u } = materialRef.current;
     u.uSquareSize.value = squareSizeCtrl;
     u.uBorderColor.value.copy(borderColorRGB);
+    u.uHoverFillColor.value.copy(hoverColorRGB);
     // Reset gridOffset when direction changes
     gridOffset.current.set(0, 0);
-  }, [squareSizeCtrl, borderColorRGB, directionCtrl]);
+  }, [squareSizeCtrl, borderColorRGB, hoverColorRGB, directionCtrl]);
 
   useFrame((state) => {
     if (!materialRef.current) return;
@@ -153,6 +177,16 @@ export default function Squares({
       resolutionRef.current.set(width, height);
       material.uniforms.uResolution.value.set(width, height);
     }
+
+    // Update target mouse position
+    targetMousePos.current.set(
+      (state.mouse.x + 1) / 2,
+      (state.mouse.y + 1) / 2
+    );
+
+    // Smooth mouse movement
+    smoothMousePos.current.lerp(targetMousePos.current, 0.1);
+    material.uniforms.uMouse.value.copy(smoothMousePos.current);
   });
 
   return (
