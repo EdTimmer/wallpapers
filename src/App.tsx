@@ -11,6 +11,7 @@ import WallD from './components/WallD';
 import PrismaticBurst from './components/PrismaticBurst';
 import Galaxy from './components/Galaxy';
 import PrismaticGalaxy from './components/PrismaticGalaxy';
+import Squares from './components/Squares';
 
 function App() {
   const location = useLocation()
@@ -40,6 +41,7 @@ function App() {
               <Route path="/aurora" element={<WallD />} />
               <Route path="/prismatic-burst" element={<PrismaticBurst />} />
               <Route path="/galaxy" element={<Galaxy />} />
+              <Route path="/squares" element={<Squares speed={0.31} squareSize={71} direction='up' borderColor='#535353' hoverFillColor='#222' />} />
               <Route path="/prismatic-galaxy" element={<PrismaticGalaxy />} />
               <Route path="/" element={<Navigate to="/aurora" replace />} />
             </Routes>
