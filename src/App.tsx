@@ -39,8 +39,8 @@ function App() {
               <Route path="/wall-b" element={<WallB />} />
               <Route path="/wall-c" element={<WallC />} />
               <Route path="/aurora" element={<WallD />} />
-              <Route path="/prismatic-burst" element={<PrismaticBurst />} />
-              <Route path="/galaxy" element={<Galaxy />} />
+              <Route path="/prismatic-burst" element={<PrismaticBurst colors={['#000000', '#000000', '#000000']} speed={0.5} intensity={2.0} animType={1} distort={0} noiseAmount={0.05} rayCount={0} opacity={1.0} pixelRatio={0.5} />} />
+              <Route path="/galaxy" element={<Galaxy focal={[0.5, 0.5]} rotation={[1.0, 0.0]} starSpeed={0.5} density={1} hueShift={140} />} />
               <Route path="/squares" element={<Squares speed={0.31} squareSize={71} direction='up' borderColor='#535353' />} />
               <Route path="/prismatic-galaxy" element={<PrismaticGalaxy />} />
               <Route path="/" element={<Navigate to="/aurora" replace />} />

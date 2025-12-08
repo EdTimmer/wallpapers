@@ -11,6 +11,14 @@ import fragmentShader from '@shaders/prismaticBurst/fragment.glsl'
 
 type PrismaticBurstProps = {
   colors?: string[]
+  speed?: number
+  intensity?: number
+  animType?: number
+  distort?: number
+  noiseAmount?: number
+  rayCount?: number
+  opacity?: number
+  pixelRatio?: number
 }
 
 type ColorObjectValue = {
@@ -94,7 +102,17 @@ const colorValueToRgb = (value?: ColorControlValue): [number, number, number] =>
   ]
 }
 
-export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
+export default function PrismaticBurst({ 
+  colors,
+  speed = DEFAULTS.uSpeed,
+  intensity = DEFAULTS.uIntensity,
+  animType = DEFAULTS.uAnimType,
+  distort = DEFAULTS.uDistort,
+  noiseAmount = DEFAULTS.uNoiseAmount,
+  rayCount = DEFAULTS.uRayCount,
+  opacity = DEFAULTS.uOpacity,
+  pixelRatio = DEFAULTS.pixelRatio
+}: PrismaticBurstProps = {}) {
   const materialRef = useRef<RawShaderMaterial>(null!)
   const mouseRef = useRef<Vector2>(new Vector2(0.5, 0.5))
   const elapsedRef = useRef(0)
@@ -199,29 +217,29 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
     return []
   }, [colors])
 
-  const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, uOpacity, pixelRatio }, setMain] = useControls('Prismatic Burst', () => ({
-    uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 3, step: 0.01, label: 'Speed' },
-    uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 5, step: 0.1, label: 'Intensity' },
+  const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, uOpacity, pixelRatio: pixelRatioCtrl }, setMain] = useControls('Prismatic Burst', () => ({
+    uSpeed: { value: speed, min: 0, max: 3, step: 0.01, label: 'Speed' },
+    uIntensity: { value: intensity, min: 0, max: 5, step: 0.1, label: 'Intensity' },
     uAnimType: { 
-      value: DEFAULTS.uAnimType, 
+      value: animType, 
       options: { 'Rotate': 0, 'Rotate 3D': 1, 'Hover': 2 },
       label: 'Animation Type' 
     },
-    uDistort: { value: DEFAULTS.uDistort, min: 0, max: 10, step: 0.1, label: 'Distortion' },
-    uNoiseAmount: { value: DEFAULTS.uNoiseAmount, min: 0, max: 1, step: 0.01, label: 'Noise' },
-    uRayCount: { value: DEFAULTS.uRayCount, min: 0, max: 24, step: 1, label: 'Ray Count' },
-    uOpacity: { value: DEFAULTS.uOpacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
-    pixelRatio: { value: DEFAULTS.pixelRatio, min: 0.5, max: 2, step: 0.05, label: 'Render DPR' },
+    uDistort: { value: distort, min: 0, max: 10, step: 0.1, label: 'Distortion' },
+    uNoiseAmount: { value: noiseAmount, min: 0, max: 1, step: 0.01, label: 'Noise' },
+    uRayCount: { value: rayCount, min: 0, max: 24, step: 1, label: 'Ray Count' },
+    uOpacity: { value: opacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
+    pixelRatio: { value: pixelRatio, min: 0.5, max: 2, step: 0.05, label: 'Render DPR' },
     'Reset All': button(() => {
       setMain({
-        uSpeed: DEFAULTS.uSpeed,
-        uIntensity: DEFAULTS.uIntensity,
-        uAnimType: DEFAULTS.uAnimType,
-        uDistort: DEFAULTS.uDistort,
-        uNoiseAmount: DEFAULTS.uNoiseAmount,
-        uRayCount: DEFAULTS.uRayCount,
-        uOpacity: DEFAULTS.uOpacity,
-        pixelRatio: DEFAULTS.pixelRatio
+        uSpeed: speed,
+        uIntensity: intensity,
+        uAnimType: animType,
+        uDistort: distort,
+        uNoiseAmount: noiseAmount,
+        uRayCount: rayCount,
+        uOpacity: opacity,
+        pixelRatio: pixelRatio
       })
       // Reset colors using Leva store - set each color individually
       const resetColors = toColorTuple(colors)
@@ -229,7 +247,17 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
       levaStore.setValueAtPath('Prismatic Burst Colors.color2', resetColors[1], false)
       levaStore.setValueAtPath('Prismatic Burst Colors.color3', resetColors[2], false)
     })
-  }))
+  }), [
+    speed,
+    intensity,
+    animType,
+    distort,
+    noiseAmount,
+    rayCount,
+    opacity,
+    pixelRatio,
+    colors
+  ])
 
   useControls('Diagnostics', () => ({
     FPS: monitor(() => fpsRef.current, { graph: true, interval: 250 }),
@@ -269,19 +297,19 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
     () => ({
       uTime: { value: 0 },
       uResolution: { value: resolutionRef.current },
-      uSpeed: { value: DEFAULTS.uSpeed },
-      uIntensity: { value: DEFAULTS.uIntensity },
-      uAnimType: { value: DEFAULTS.uAnimType },
+      uSpeed: { value: speed },
+      uIntensity: { value: intensity },
+      uAnimType: { value: animType },
       uMouse: { value: mouseRef.current },
-      uDistort: { value: DEFAULTS.uDistort },
+      uDistort: { value: distort },
       uOffset: { value: new Vector2(0, 0) },
-      uNoiseAmount: { value: DEFAULTS.uNoiseAmount },
-      uRayCount: { value: DEFAULTS.uRayCount },
-      uOpacity: { value: DEFAULTS.uOpacity },
+      uNoiseAmount: { value: noiseAmount },
+      uRayCount: { value: rayCount },
+      uOpacity: { value: opacity },
       uColorCount: { value: 0 }, // Start with 0 (spectral mode), updated in useFrame
       uGradient: { value: gradientTexture }
     }),
-    [gradientTexture]
+    [gradientTexture, speed, intensity, animType, distort, noiseAmount, rayCount, opacity]
   )
 
   useEffect(() => {
@@ -308,14 +336,14 @@ export default function PrismaticBurst({ colors }: PrismaticBurstProps = {}) {
 
   useEffect(() => {
     const originalDpr = gl.getPixelRatio()
-    const targetDpr = Math.min(originalDpr, pixelRatio)
+    const targetDpr = Math.min(originalDpr, pixelRatioCtrl)
     if (targetDpr !== originalDpr) {
       gl.setPixelRatio(targetDpr)
     }
     return () => {
       gl.setPixelRatio(originalDpr)
     }
-  }, [gl, pixelRatio])
+  }, [gl, pixelRatioCtrl])
 
   useFrame(({ mouse, size, gl }, delta) => {
     if (!materialRef.current) return
