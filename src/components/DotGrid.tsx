@@ -1,3 +1,6 @@
+// This component is an adaptation of DotGrid.jsx from https://github.com/DavidHDev/react-bits,
+// Copyright (c) 2025 David Haz — licensed under the MIT + Commons Clause License Condition v1.0.
+
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { ScreenQuad } from '@react-three/drei'

@@ -1,3 +1,6 @@
+// This shader is a translation of DotGrid.jsx from https://github.com/DavidHDev/react-bits,
+// Copyright (c) 2025 David Haz — licensed under the MIT + Commons Clause License Condition v1.0.
+
 precision highp float;
 precision highp int;
 
