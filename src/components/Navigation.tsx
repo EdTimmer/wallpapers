@@ -20,7 +20,16 @@ function Navigation() {
       <Link to="/squares" className="button" style={{ cursor: 'pointer', border: location.pathname === '/squares' ? '1px solid white' : '1px solid transparent' }}>
         Squares
       </Link>
+      <Link to="/dot-grid" className="button" style={{ cursor: 'pointer', border: location.pathname === '/dot-grid' ? '1px solid white' : '1px solid transparent' }}>
+        Dot Grid
+      </Link>
+      <Link to="/aurora-squares" className="button" style={{ cursor: 'pointer', border: location.pathname === '/aurora-squares' ? '1px solid white' : '1px solid transparent' }}>
+        Aurora Squares
+      </Link>
 
+      <Link to="/aurora-dot-grid" className="button" style={{ cursor: 'pointer', border: location.pathname === '/aurora-dot-grid' ? '1px solid white' : '1px solid transparent' }}>
+        Aurora Dot Grid
+      </Link>
       <Link to="/wall-a" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-a' ? '1px solid white' : '1px solid transparent' }}>
         Wallpaper A
       </Link>

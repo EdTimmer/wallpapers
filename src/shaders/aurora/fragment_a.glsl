@@ -20,6 +20,9 @@ uniform float uClickStrengths[10]; // Strength/fade for each click
 uniform int uClickCount; // Number of active clicks
 uniform float uBlobSize; // Size of click blobs
 uniform float uBlobIntensity; // Intensity/brightness of blob color
+uniform float uOpacity;
+uniform float uGrainAmount;
+uniform float uVignette;
 
 varying vec2 vUv;
 
@@ -157,7 +160,26 @@ void main() {
   // Mix aurora with black background instead of using alpha transparency
   vec3 finalColor = mix(vec3(0.0), auroraColor, auroraAlpha);
   
-  gl_FragColor = vec4(finalColor, 1.0);
+  // Add film grain/noise using simplex noise for smoother appearance
+  float grain = 0.0;
+  if (uGrainAmount > 0.0) {
+    // Use simplex noise for smooth, organic grain
+    // Scale UV for grain frequency with minimal time variation
+    vec2 grainCoord = vUv * 800.0 + vec2(uTime * 0.02);
+    grain = snoise(grainCoord) * uGrainAmount;
+  }
+  
+  vec3 grainedColor = finalColor + vec3(grain);
+  
+  // Apply vignette effect
+  if (uVignette > 0.0) {
+    vec2 center = vUv - 0.5;
+    float dist = length(center);
+    float vignetteFactor = smoothstep(0.8, 0.2, dist * uVignette);
+    grainedColor *= vignetteFactor;
+  }
+  
+  gl_FragColor = vec4(grainedColor, uOpacity);
 
   #include <colorspace_fragment>    
 }

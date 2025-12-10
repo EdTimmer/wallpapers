@@ -5,8 +5,8 @@ import { useRef, useEffect, useMemo, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Mesh, ShaderMaterial, PerspectiveCamera, OrthographicCamera, Vector2, Raycaster } from 'three'
 import { useControls, button } from 'leva'
-import vertexShader from '@shaders/wallShadersD/vertex_a.glsl'
-import fragmentShader from '@shaders/wallShadersD/fragment_a.glsl'
+import vertexShader from '@shaders/aurora/vertex_a.glsl'
+import fragmentShader from '@shaders/aurora/fragment_a.glsl'
 
 interface ClickPoint {
   position: Vector2
@@ -23,7 +23,41 @@ const hexToRgb = (hex: string): [number, number, number] => {
   return [r, g, b]
 }
 
-export default function WallD() {
+type AuroraProps = {
+  speed?: number
+  intensity?: number
+  blend?: number
+  saturation?: number
+  scale?: number
+  verticalOffset?: number
+  firstColor?: string
+  secondColor?: string
+  thirdColor?: string
+  opacity?: number
+  grainAmount?: number
+  vignette?: number
+  fadeSpeed?: number
+  distortionRadius?: number
+  distortionStrength?: number
+}
+
+export default function Aurora({
+  speed = 0.47,
+  intensity = 0.8,
+  blend = 1.0,
+  saturation = 1.0,
+  scale = 1.4,
+  verticalOffset = 0.05,
+  firstColor = '#ddff00',
+  secondColor = '#00b30c',
+  thirdColor = '#00bfff',
+  opacity = 1.0,
+  grainAmount = 0.0,
+  vignette = 0.0,
+  fadeSpeed = 0.1,
+  distortionRadius = 0.01,
+  distortionStrength = 0.0
+}: AuroraProps = {}) {
   const meshRef = useRef<Mesh>(null!)
   const materialRef = useRef<ShaderMaterial>(null!)
   const [clickPoints, setClickPoints] = useState<ClickPoint[]>([])
@@ -51,21 +85,24 @@ export default function WallD() {
   }, [camera, size])
 
   const DEFAULTS = {
-    uSpeed: 0.47,
-    uIntensity: 0.8,
-    uBlend: 1.0,
-    uSaturation: 1.0,
-    uScale: 1.4,
-    uVerticalOffset: 0.05,
-    uFirstColor: '#ddff00',
-    uSecondColor: '#00b30c',
-    uThirdColor: '#00bfff',
-    fadeSpeed: 0.1,
-    distortionRadius: 0.01,
-    distortionStrength: 0.0
+    uSpeed: speed,
+    uIntensity: intensity,
+    uBlend: blend,
+    uSaturation: saturation,
+    uScale: scale,
+    uVerticalOffset: verticalOffset,
+    uFirstColor: firstColor,
+    uSecondColor: secondColor,
+    uThirdColor: thirdColor,
+    opacity: opacity,
+    grainAmount: grainAmount,
+    vignette: vignette,
+    fadeSpeed: fadeSpeed,
+    distortionRadius: distortionRadius,
+    distortionStrength: distortionStrength
   }
 
-  const [{ uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor }, setMain] = useControls('Aurora', () => ({
+  const [{ uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor, opacity: opacityCtrl, grainAmount: grainAmountCtrl, vignette: vignetteCtrl }, setMain] = useControls('Aurora', () => ({
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 3, step: 0.01, label: 'Speed' },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 3, step: 0.1, label: 'Amplitude' },
     uBlend: { value: DEFAULTS.uBlend, min: 0, max: 1, step: 0.01, label: 'Blend' },
@@ -75,6 +112,9 @@ export default function WallD() {
     uFirstColor: { value: DEFAULTS.uFirstColor, label: 'Color 1 (Base)' },
     uSecondColor: { value: DEFAULTS.uSecondColor, label: 'Color 2 (Mid)' },
     uThirdColor: { value: DEFAULTS.uThirdColor, label: 'Color 3 (Top)' },
+    opacity: { value: DEFAULTS.opacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
+    grainAmount: { value: DEFAULTS.grainAmount, min: 0, max: 0.5, step: 0.01, label: 'Grain' },
+    vignette: { value: DEFAULTS.vignette, min: 0, max: 2, step: 0.05, label: 'Vignette' },
     'Reset All': button(() => {
       setMain({
         uSpeed: DEFAULTS.uSpeed,
@@ -85,7 +125,10 @@ export default function WallD() {
         uVerticalOffset: DEFAULTS.uVerticalOffset,
         uFirstColor: DEFAULTS.uFirstColor,
         uSecondColor: DEFAULTS.uSecondColor,
-        uThirdColor: DEFAULTS.uThirdColor
+        uThirdColor: DEFAULTS.uThirdColor,
+        opacity: DEFAULTS.opacity,
+        grainAmount: DEFAULTS.grainAmount,
+        vignette: DEFAULTS.vignette
       })
       setDistortion({
         fadeSpeed: DEFAULTS.fadeSpeed,
@@ -95,7 +138,7 @@ export default function WallD() {
     })
   }))
 
-  const [{ fadeSpeed, distortionRadius, distortionStrength }, setDistortion] = useControls('Distortion D', () => ({
+  const [{ fadeSpeed: fadeSpeedCtrl, distortionRadius: distortionRadiusCtrl, distortionStrength: distortionStrengthCtrl }, setDistortion] = useControls('Distortion D', () => ({
     fadeSpeed: { value: DEFAULTS.fadeSpeed, min: 0.1, max: 3, step: 0.1 },
     distortionRadius: { value: DEFAULTS.distortionRadius, min: 0.01, max: 0.5, step: 0.01, label: 'Radius' },
     distortionStrength: { value: DEFAULTS.distortionStrength, min: 0, max: 0.5, step: 0.001, label: 'Strength' }
@@ -118,7 +161,10 @@ export default function WallD() {
       uClickStrengths: { value: Array(10).fill(0) },
       uClickCount: { value: 0 },
       uBlobSize: { value: 0.15 },
-      uBlobIntensity: { value: 0.02 }
+      uBlobIntensity: { value: 0.02 },
+      uOpacity: { value: DEFAULTS.opacity },
+      uGrainAmount: { value: DEFAULTS.grainAmount },
+      uVignette: { value: DEFAULTS.vignette }
     }),
     []
   )
@@ -134,10 +180,13 @@ export default function WallD() {
       materialRef.current.uniforms.uFirstColor.value = hexToRgb(uFirstColor)
       materialRef.current.uniforms.uSecondColor.value = hexToRgb(uSecondColor)
       materialRef.current.uniforms.uThirdColor.value = hexToRgb(uThirdColor)
-      materialRef.current.uniforms.uBlobSize.value = distortionRadius
-      materialRef.current.uniforms.uBlobIntensity.value = distortionStrength
+      materialRef.current.uniforms.uBlobSize.value = distortionRadiusCtrl
+      materialRef.current.uniforms.uBlobIntensity.value = distortionStrengthCtrl
+      materialRef.current.uniforms.uOpacity.value = opacityCtrl
+      materialRef.current.uniforms.uGrainAmount.value = grainAmountCtrl
+      materialRef.current.uniforms.uVignette.value = vignetteCtrl
     }
-  }, [uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor, distortionRadius, distortionStrength])
+  }, [uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor, distortionRadiusCtrl, distortionStrengthCtrl, opacityCtrl, grainAmountCtrl, vignetteCtrl])
 
   useEffect(() => {
     const getUVFromEvent = (event: MouseEvent): Vector2 | null => {
@@ -224,7 +273,7 @@ export default function WallD() {
           .map(point => ({
             ...point,
             age: point.age + delta,
-            strength: Math.max(0, point.strength - delta * fadeSpeed)
+            strength: Math.max(0, point.strength - delta * fadeSpeedCtrl)
           }))
           .filter(point => point.strength > 0.01) // Remove fully faded points
       })
@@ -260,6 +309,7 @@ export default function WallD() {
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms}
+        transparent={true}
       />
     </mesh>
   )
