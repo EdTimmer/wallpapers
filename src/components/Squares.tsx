@@ -23,28 +23,30 @@ export default function Squares({
   squareSize = 40
 }: SquaresProps) {
   const materialRef = useRef<RawShaderMaterial | null>(null);
-  const { size } = useThree();
+  const { size, gl } = useThree();
+  // Store the device's native pixel ratio (not the current Three.js value)
+  const devicePixelRatio = window.devicePixelRatio || 1;
 
   const resolutionRef = useRef(new Vector2(size.width, size.height));
-  const gridOffset = useRef(new Vector2(0, 0));
+  const offsetRef = useRef(new Vector2(0, 0));
 
   const [
     {
       direction: directionCtrl,
-      speed: speedCtrl,
+      squareSpeed: speedCtrl,
       borderColor: borderColorCtrl,
       squareSize: squareSizeCtrl
     },
     setControls
   ] = useControls(
-    'Squares',
+    'Squares Controls',
     () => ({
       direction: {
         value: direction,
         options: ['diagonal', 'up', 'right', 'down', 'left'],
         label: 'Direction'
       },
-      speed: {
+      squareSpeed: {
         value: speed,
         min: 0.1,
         max: 5,
@@ -65,7 +67,7 @@ export default function Squares({
       'Reset Squares': button(() => {
         setControls({
           direction,
-          speed,
+          squareSpeed: speed,
           borderColor,
           squareSize
         });
@@ -95,60 +97,75 @@ export default function Squares({
     []
   );
 
+  // Reset pixel ratio to device native on mount and cleanup
+  useEffect(() => {
+    gl.setPixelRatio(devicePixelRatio);
+    return () => {
+      gl.setPixelRatio(devicePixelRatio);
+    };
+  }, [gl, devicePixelRatio]);
+  
+  // Reset offset when direction changes
+  useEffect(() => {
+    offsetRef.current.set(0, 0);
+  }, [directionCtrl]);
+
   // Update uniforms when controls change
   useEffect(() => {
     if (!materialRef.current) return;
     const { uniforms: u } = materialRef.current;
     u.uSquareSize.value = squareSizeCtrl;
     u.uBorderColor.value.copy(borderColorRGB);
-    // Reset gridOffset when direction changes
-    gridOffset.current.set(0, 0);
-  }, [squareSizeCtrl, borderColorRGB, directionCtrl]);
+  }, [squareSizeCtrl, borderColorRGB]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (!materialRef.current) return;
 
     const material = materialRef.current;
-
-    // Use continuous time-based movement instead of per-frame accumulation
-    // This allows the GPU to interpolate smoothly at any frame rate
     const effectiveSpeed = Math.max(speedCtrl, 0.1);
     const size = squareSizeCtrl;
-    const time = state.clock.elapsedTime;
     
-    // Calculate offset based on continuous time (pixels per second: speed * 60fps)
-    const pixelsPerSecond = effectiveSpeed * 60.0;
-    const totalOffset = time * pixelsPerSecond;
+    // Clamp delta to prevent huge jumps (max 100ms = 0.1s)
+    const clampedDelta = Math.min(delta, 0.1);
     
+    // Calculate movement for this frame (pixels per second * delta)
+    const movement = clampedDelta * effectiveSpeed * 60.0;
+    
+    // Update offset based on direction
     switch (directionCtrl) {
       case 'right':
-        gridOffset.current.x = (-totalOffset + size * 10000) % size;
-        gridOffset.current.y = 0;
+        offsetRef.current.x = (offsetRef.current.x - movement) % size;
+        if (offsetRef.current.x < 0) offsetRef.current.x += size;
+        offsetRef.current.y = 0;
         break;
       case 'left':
-        gridOffset.current.x = (totalOffset + size * 10000) % size;
-        gridOffset.current.y = 0;
+        offsetRef.current.x = (offsetRef.current.x + movement) % size;
+        offsetRef.current.y = 0;
         break;
       case 'up':
-        gridOffset.current.x = 0;
-        gridOffset.current.y = (-totalOffset + size * 10000) % size;
+        offsetRef.current.x = 0;
+        offsetRef.current.y = (offsetRef.current.y - movement) % size;
+        if (offsetRef.current.y < 0) offsetRef.current.y += size;
         break;
       case 'down':
-        gridOffset.current.x = 0;
-        gridOffset.current.y = (totalOffset + size * 10000) % size;
+        offsetRef.current.x = 0;
+        offsetRef.current.y = (offsetRef.current.y + movement) % size;
         break;
       case 'diagonal':
-        gridOffset.current.x = (-totalOffset + size * 10000) % size;
-        gridOffset.current.y = (-totalOffset + size * 10000) % size;
+        offsetRef.current.x = (offsetRef.current.x - movement) % size;
+        offsetRef.current.y = (offsetRef.current.y - movement) % size;
+        if (offsetRef.current.x < 0) offsetRef.current.x += size;
+        if (offsetRef.current.y < 0) offsetRef.current.y += size;
         break;
     }
     
     // Update the uniform value
-    material.uniforms.uGridOffset.value.copy(gridOffset.current);
+    material.uniforms.uGridOffset.value.copy(offsetRef.current);
 
-    // Only update resolution if it changed
+    // Update resolution if it changed
     const width = state.size.width;
     const height = state.size.height;
+    
     if (resolutionRef.current.x !== width || resolutionRef.current.y !== height) {
       resolutionRef.current.set(width, height);
       material.uniforms.uResolution.value.set(width, height);

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { Canvas } from '@react-three/fiber';
 import { Leva } from 'leva'
 import './App.css'
@@ -17,9 +17,7 @@ import AuroraSquares from './components/AuroraSquares';
 import AuroraDotGrid from './components/AuroraDotGrid';
 
 function App() {
-  const location = useLocation()
-  const themedRoutes = ['/prismatic-burst', '/galaxy', '/prismatic-galaxy', '/dot-grid']
-  const useWideControls = themedRoutes.some((route) => location.pathname.startsWith(route))
+  const useWideControls = true
   const wideTheme = useMemo(() => ({
     sizes: {
       rootWidth: '350px'
