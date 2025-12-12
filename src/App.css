@@ -115,7 +115,7 @@ button:focus-visible {
 /* --- Container (The "Border" Frame) --- */
 .card-border-effect {
   position: relative;
-  border-radius: 12px;
+  border-radius: 120px;
   overflow: hidden;
   z-index: 1; 
 }
@@ -151,7 +151,7 @@ button:focus-visible {
   position: relative;
   z-index: 1; 
   background-color: #1b232e;
-  border-radius: 10px;
+  border-radius: 100px;
   cursor: pointer;
   width: 160px;  
   /* margin creates the space where the rotating image shows through */
