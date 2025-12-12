@@ -136,7 +136,7 @@ button:focus-visible {
   z-index: 0; 
   
   /* Load the Reflection Image */
-  background-image: url('assets/images/gradient8.png');
+  background-image: url('/assets/images/gradient8.png');
   background-repeat: repeat-x;
   background-size: cover;
 
