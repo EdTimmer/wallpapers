@@ -1,44 +1,66 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import StyledButton from './StyledButton';
 
 function Navigation() {
   const location = useLocation();
 
   return (
     <div className="buttons-container">
-      <Link to="/aurora" className="button" style={{ cursor: 'pointer', border: location.pathname === '/aurora' ? '1px solid white' : '1px solid transparent' }}>
-        Aurora
-      </Link>
-      <Link to="/prismatic-burst" className="button" style={{ cursor: 'pointer', border: location.pathname === '/prismatic-burst' ? '1px solid white' : '1px solid transparent' }}>
-        Prismatic Burst
-      </Link>
-      <Link to="/galaxy" className="button" style={{ cursor: 'pointer', border: location.pathname === '/galaxy' ? '1px solid white' : '1px solid transparent' }}>
-        Galaxy
-      </Link>
-      <Link to="/prismatic-galaxy" className="button" style={{ cursor: 'pointer', border: location.pathname === '/prismatic-galaxy' ? '1px solid white' : '1px solid transparent' }}>
-        Prismatic Galaxy
-      </Link>
-      <Link to="/squares" className="button" style={{ cursor: 'pointer', border: location.pathname === '/squares' ? '1px solid white' : '1px solid transparent' }}>
-        Squares
-      </Link>
-      <Link to="/dot-grid" className="button" style={{ cursor: 'pointer', border: location.pathname === '/dot-grid' ? '1px solid white' : '1px solid transparent' }}>
-        Dot Grid
-      </Link>
-      <Link to="/aurora-squares" className="button" style={{ cursor: 'pointer', border: location.pathname === '/aurora-squares' ? '1px solid white' : '1px solid transparent' }}>
-        Aurora Squares
-      </Link>
-
-      <Link to="/aurora-dot-grid" className="button" style={{ cursor: 'pointer', border: location.pathname === '/aurora-dot-grid' ? '1px solid white' : '1px solid transparent' }}>
-        Aurora Dot Grid
-      </Link>
-      <Link to="/wall-a" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-a' ? '1px solid white' : '1px solid transparent' }}>
-        Wallpaper A
-      </Link>
-      <Link to="/wall-b" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-b' ? '1px solid white' : '1px solid transparent' }}>
-        Wallpaper B
-      </Link>
-      <Link to="/wall-c" className="button" style={{ cursor: 'pointer', border: location.pathname === '/wall-c' ? '1px solid white' : '1px solid transparent' }}>
-        Wallpaper C
-      </Link>
+      <StyledButton
+        label="Aurora"
+        to="/aurora"
+        isActive={location.pathname === '/aurora'}
+      />
+      <StyledButton
+        label="Prismatic Burst"
+        to="/prismatic-burst"
+        isActive={location.pathname === '/prismatic-burst'}
+      />
+      <StyledButton
+        label="Galaxy"
+        to="/galaxy"
+        isActive={location.pathname === '/galaxy'}
+      />
+      <StyledButton
+        label="Prismatic Galaxy"
+        to="/prismatic-galaxy"
+        isActive={location.pathname === '/prismatic-galaxy'}
+      />
+      <StyledButton
+        label="Squares"
+        to="/squares"
+        isActive={location.pathname === '/squares'}
+      />
+      <StyledButton
+        label="Dot Grid"
+        to="/dot-grid"
+        isActive={location.pathname === '/dot-grid'}
+      />
+      <StyledButton
+        label="Aurora Squares"
+        to="/aurora-squares"
+        isActive={location.pathname === '/aurora-squares'}
+      />
+      <StyledButton
+        label="Aurora Dot Grid"
+        to="/aurora-dot-grid"
+        isActive={location.pathname === '/aurora-dot-grid'}
+      />
+      <StyledButton
+        label="Wallpaper A"
+        to="/wall-a"
+        isActive={location.pathname === '/wall-a'}
+      />
+      <StyledButton
+        label="Wallpaper B"
+        to="/wall-b"
+        isActive={location.pathname === '/wall-b'}
+      />
+      <StyledButton
+        label="Wallpaper C"
+        to="/wall-c"
+        isActive={location.pathname === '/wall-c'}
+      />
     </div>
   )
 }
