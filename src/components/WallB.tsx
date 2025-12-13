@@ -20,18 +20,18 @@ export default function WallB() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    Scale: 24.0,
-    RotationSpeed: 0.005,
-    FBMAmplitude: 0.5,
-    FBMPersistence: 0.75,
-    GapMix: 0.5,
-    ContrastPower: 0.4,
+    Scale: 40.0,
+    RotationSpeed: 0.15,
+    FBMAmplitude: 0.8,
+    FBMPersistence: 0.5,
+    GapMix: 1.0,
+    ContrastPower: 0.1,
     FinalPower: 4.0,
-    Opacity: 0.6,
+    Opacity: 1.0,
     fadeSpeed: 3.0,
     distortionRadius: 0.02,
     distortionStrength: 0.25,
-    BaseColor: '#69e9ff',
+    BaseColor: '#8f69ff',
     ColorMutationSpeed: 0.1
   }
 

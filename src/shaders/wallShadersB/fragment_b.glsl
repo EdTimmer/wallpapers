@@ -131,7 +131,7 @@ void main() {
   float m = mix(bands, edges, 0.65);
   m = mix(m, gap, uGapMix);
   m = pow(max(m, 0.0), uContrastPower);
-  float noise = clamp(pow(m, uFinalPower) * 1.2, 0.0, 1.0);    // reduced from 2.0 to 1.2 for less bright spots
+  float noise = clamp(pow(m, uFinalPower) * 0.6, 0.0, 1.0);    // reduced from 2.0 to 1.2 for less bright spots
 
   // Gradual color mutation over time
   float colorShift = uTime * uColorMutationSpeed;

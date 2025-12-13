@@ -19,8 +19,8 @@ export default function WallA() {
   const { camera, gl } = useThree()
 
   const DEFAULTS = {
-    'Res X': 6230,
-    'Res Y': 9440,
+    'Res X': 8350,
+    'Res Y': 12000,
     'Anim Speed': 0.3,
     'Fade Speed': 0.5,
     'Click': '#ff00fd',
