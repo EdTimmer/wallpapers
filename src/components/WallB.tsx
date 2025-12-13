@@ -23,7 +23,7 @@ export default function WallB() {
     Scale: 24.0,
     RotationSpeed: 0.005,
     FBMAmplitude: 0.5,
-    FBMPersistence: 0.5,
+    FBMPersistence: 0.75,
     GapMix: 0.5,
     ContrastPower: 0.4,
     FinalPower: 4.0,
