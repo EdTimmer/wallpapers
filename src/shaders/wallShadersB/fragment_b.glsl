@@ -12,6 +12,7 @@ uniform float uContrastPower;      // contrast power adjustment
 uniform float uFinalPower;         // final contrast exponent
 uniform float uDistortionRadius;   // click influence radius
 uniform float uDistortionStrength; // click push strength
+uniform float uColorMutationSpeed; // color mutation speed
 
 uniform vec2  uClickPoints[10];
 uniform float uClickStrengths[10];
@@ -132,6 +133,19 @@ void main() {
   m = pow(max(m, 0.0), uContrastPower);
   float noise = clamp(pow(m, uFinalPower) * 1.2, 0.0, 1.0);    // reduced from 2.0 to 1.2 for less bright spots
 
-  // Use uniform base color instead of hardcoded green
-  gl_FragColor = vec4(noise * uBaseColor, uOpacity);
+  // Gradual color mutation over time
+  float colorShift = uTime * uColorMutationSpeed;
+  
+  // Create smooth RGB shifts using different phase offsets
+  vec3 colorMultiplier = vec3(
+    0.5 + 0.5 * sin(colorShift),
+    0.1 + 0.5 * sin(colorShift + 2.094), // 120 degrees phase shift
+    0.1 + 0.5 * sin(colorShift + 4.189)  // 240 degrees phase shift
+  );
+  
+  // Blend between base color and mutated color
+  vec3 mutatedColor = mix(uBaseColor, uBaseColor * colorMultiplier * 1.5, 0.3);
+  
+  // Use mutated color
+  gl_FragColor = vec4(noise * mutatedColor, uOpacity);
 }

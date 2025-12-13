@@ -31,7 +31,8 @@ export default function WallB() {
     fadeSpeed: 3.0,
     distortionRadius: 0.02,
     distortionStrength: 0.25,
-    BaseColor: '#69e9ff'
+    BaseColor: '#69e9ff',
+    ColorMutationSpeed: 0.1
   }
 
   const [{ 
@@ -43,7 +44,8 @@ export default function WallB() {
     ContrastPower: uContrastPower,
     FinalPower: uFinalPower,
     Opacity: uOpacity,
-    BaseColor: baseColor
+    BaseColor: baseColor,
+    ColorMutationSpeed: uColorMutationSpeed
   }, setMain] = useControls('NoiseB', () => ({
     Scale: { value: DEFAULTS.Scale, min: 5, max: 40, step: 0.1 },
     RotationSpeed: { value: DEFAULTS.RotationSpeed, min: -1.0, max: 1.0, step: 0.01 },
@@ -54,6 +56,7 @@ export default function WallB() {
     FinalPower: { value: DEFAULTS.FinalPower, min: 0.5, max: 10.0, step: 0.5 },
     Opacity: { value: DEFAULTS.Opacity, min: 0, max: 1, step: 0.01 },
     BaseColor: { value: DEFAULTS.BaseColor },
+    ColorMutationSpeed: { value: DEFAULTS.ColorMutationSpeed, min: 0, max: 1, step: 0.01, label: 'Color Mutation Speed' },
     'Reset All': button(() => {
       setMain({
         Scale: DEFAULTS.Scale,
@@ -64,7 +67,8 @@ export default function WallB() {
         ContrastPower: DEFAULTS.ContrastPower,
         FinalPower: DEFAULTS.FinalPower,
         Opacity: DEFAULTS.Opacity,
-        BaseColor: DEFAULTS.BaseColor
+        BaseColor: DEFAULTS.BaseColor,
+        ColorMutationSpeed: DEFAULTS.ColorMutationSpeed
       })
       setDistortion({
         fadeSpeed: DEFAULTS.fadeSpeed,
@@ -96,7 +100,8 @@ export default function WallB() {
       uClickCount: { value: 0 },
       uDistortionRadius: { value: 0.15 },
       uDistortionStrength: { value: 0.02 },
-      uBaseColor: { value: [0.525, 0.992, 0.866] }
+      uBaseColor: { value: [0.525, 0.992, 0.866] },
+      uColorMutationSpeed: { value: 0.1 }
     }),
     []
   )
@@ -177,6 +182,7 @@ export default function WallB() {
       materialRef.current.uniforms.uOpacity.value = uOpacity
       materialRef.current.uniforms.uDistortionRadius.value = distortionRadius
       materialRef.current.uniforms.uDistortionStrength.value = distortionStrength
+      materialRef.current.uniforms.uColorMutationSpeed.value = uColorMutationSpeed
       
       // Convert base color hex to RGB array (0-1 range)
       const baseHex = baseColor.replace('#', '')
@@ -185,7 +191,7 @@ export default function WallB() {
       const bb = parseInt(baseHex.substring(4, 6), 16) / 255
       materialRef.current.uniforms.uBaseColor.value = [br, bg, bb]
     }
-  }, [uNoiseScale, uRotationSpeed, uFBMAmplitude, uFBMPersistence, uGapMix, uContrastPower, uFinalPower, uOpacity, distortionRadius, distortionStrength, baseColor])
+  }, [uNoiseScale, uRotationSpeed, uFBMAmplitude, uFBMPersistence, uGapMix, uContrastPower, uFinalPower, uOpacity, distortionRadius, distortionStrength, baseColor, uColorMutationSpeed])
 
   useFrame(({ clock }, delta) => {
     if (materialRef.current) {
