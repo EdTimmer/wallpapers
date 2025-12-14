@@ -127,7 +127,7 @@ button:focus-visible {
   
   /* Size and Position the Rotating Layer */
   
-  width: 500%; 
+  width: 100%; 
   height: 500%; 
 
   top: 50%; /* Start position at 50% from top */
@@ -136,12 +136,12 @@ button:focus-visible {
   z-index: 0; 
   
   /* Load the Reflection Image */
-  background-image: url('/assets/images/gradient8.png');
+  background-image: url('/assets/images/gradient9.png');
   background-repeat: repeat-x;
   background-size: cover;
 
   /* Apply the animation */
-  animation: rotate-reflection 6s linear infinite;
+  animation: rotate-reflection 4s linear infinite;
 }
 /*  */
 
