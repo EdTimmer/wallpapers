@@ -8,11 +8,11 @@ export default function AuroraDotGrid() {
 	return (
 		<group>
 			<group position={[0, 0, BURST_PLANE_Z]}>
-        <Aurora speed={0.47} intensity={0.8} blend={1.0} saturation={1.0} scale={1.4} verticalOffset={0.05} firstColor='#ddff00' secondColor='#00b30c' thirdColor='#00bfff' opacity={1.0} grainAmount={0.0} vignette={0.0} fadeSpeed={0.1} distortionRadius={0.01} distortionStrength={0.0} />
+        <Aurora speed={0.47} intensity={0.8} blend={1.0} saturation={1.0} scale={1.4} verticalOffset={0.05} firstColor='#ddff00' secondColor='#00b30c' thirdColor='#00bfff' opacity={1.0} grainAmount={0.0} vignette={0.0} vignetteOpacity={1.0} fadeSpeed={0.1} distortionRadius={0.01} distortionStrength={0.0} />
 			</group>
 
 			<group position={[0, 0, GALAXY_PLANE_Z]}>
-			  <DotGrid dotSize={4} gap={19} baseColor='#1a1a1a' activeColor='#ffffff' proximity={70} speedTrigger={100} shockRadius={100} shockStrength={9} maxSpeed={5000} resistance={650} returnDuration={1.6} mouseInteraction={true} opacity={1.0} />
+			  <DotGrid dotSize={4} gap={19} baseColor='#1a1a1a' activeColor='#ffffff' proximity={70} activeDuration={1.6} mouseInteraction={true} activeOpacity={1.0} baseOpacity={1.0} />
 			</group>
 		</group>
 	)
