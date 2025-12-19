@@ -23,6 +23,7 @@ uniform float uBlobIntensity; // Intensity/brightness of blob color
 uniform float uOpacity;
 uniform float uGrainAmount;
 uniform float uVignette;
+uniform float uVignetteOpacity;
 
 varying vec2 vUv;
 
@@ -171,12 +172,13 @@ void main() {
   
   vec3 grainedColor = finalColor + vec3(grain);
   
-  // Apply vignette effect
+  // Apply vignette effect with opacity control
   if (uVignette > 0.0) {
     vec2 center = vUv - 0.5;
     float dist = length(center);
     float vignetteFactor = smoothstep(0.8, 0.2, dist * uVignette);
-    grainedColor *= vignetteFactor;
+    // Mix between original color and darkened color based on vignette opacity
+    grainedColor = mix(grainedColor, grainedColor * vignetteFactor, uVignetteOpacity);
   }
   
   gl_FragColor = vec4(grainedColor, uOpacity);

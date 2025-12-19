@@ -10,7 +10,9 @@ uniform float uTime;
 uniform float uDotSize;
 uniform float uGap;
 uniform vec3 uBaseColor;
+uniform float uBaseOpacity;
 uniform vec3 uActiveColor;
+uniform float uActiveOpacity;
 uniform float uProximity;
 uniform float uSpeedTrigger;
 uniform float uShockRadius;
@@ -19,7 +21,6 @@ uniform float uMaxSpeed;
 uniform float uResistance;
 uniform float uReturnDuration;
 uniform float uMouseActiveFactor;
-uniform float uOpacity;
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -88,22 +89,24 @@ void main() {
                 // Distance from dot center to mouse
                 float distToMouse = length(dotCenter - mouseScreenPos);
                 
-                // Calculate color based on proximity to mouse
+                // Calculate color and opacity based on proximity to mouse
                 vec3 dotColor = uBaseColor;
+                float dotOpacity = uBaseOpacity;
                 if (distToMouse <= uProximity && uMouseActiveFactor > 0.01) {
                     float t = 1.0 - distToMouse / uProximity;
                     t *= uMouseActiveFactor; // Fade in/out when mouse enters/leaves
                     dotColor = mix(uBaseColor, uActiveColor, t);
+                    dotOpacity = mix(uBaseOpacity, uActiveOpacity, t);
                 }
                 
                 // Anti-aliasing for smooth edges
                 float edge = 1.0 - smoothstep(dotRadius - 1.0, dotRadius, dist);
                 
                 color = dotColor;
-                alpha = edge;
+                alpha = edge * dotOpacity;
             }
         }
     }
     
-    fragColor = vec4(color, alpha * uOpacity);
+    fragColor = vec4(color, alpha);
 }

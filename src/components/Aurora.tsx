@@ -36,6 +36,7 @@ type AuroraProps = {
   opacity?: number
   grainAmount?: number
   vignette?: number
+  vignetteOpacity?: number
   fadeSpeed?: number
   distortionRadius?: number
   distortionStrength?: number
@@ -54,6 +55,7 @@ export default function Aurora({
   opacity = 1.0,
   grainAmount = 0.0,
   vignette = 0.0,
+  vignetteOpacity = 1.0,
   fadeSpeed = 0.1,
   distortionRadius = 0.01,
   distortionStrength = 0.0
@@ -97,12 +99,13 @@ export default function Aurora({
     opacity: opacity,
     grainAmount: grainAmount,
     vignette: vignette,
+    vignetteOpacity: vignetteOpacity,
     fadeSpeed: fadeSpeed,
     distortionRadius: distortionRadius,
     distortionStrength: distortionStrength
   }
 
-  const [{ uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor, opacity: opacityCtrl, grainAmount: grainAmountCtrl, vignette: vignetteCtrl }, setMain] = useControls('Aurora', () => ({
+  const [{ uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor, opacity: opacityCtrl, grainAmount: grainAmountCtrl, vignette: vignetteCtrl, vignetteOpacity: vignetteOpacityCtrl }, setMain] = useControls('Aurora', () => ({
     uSpeed: { value: DEFAULTS.uSpeed, min: 0, max: 3, step: 0.01, label: 'Speed' },
     uIntensity: { value: DEFAULTS.uIntensity, min: 0, max: 3, step: 0.1, label: 'Amplitude' },
     uBlend: { value: DEFAULTS.uBlend, min: 0, max: 1, step: 0.01, label: 'Blend' },
@@ -115,6 +118,7 @@ export default function Aurora({
     opacity: { value: DEFAULTS.opacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
     grainAmount: { value: DEFAULTS.grainAmount, min: 0, max: 0.5, step: 0.01, label: 'Grain' },
     vignette: { value: DEFAULTS.vignette, min: 0, max: 2, step: 0.05, label: 'Vignette' },
+    vignetteOpacity: { value: DEFAULTS.vignetteOpacity, min: 0, max: 1, step: 0.01, label: 'Vignette Opacity' },
     'Reset All': button(() => {
       setMain({
         uSpeed: DEFAULTS.uSpeed,
@@ -128,7 +132,8 @@ export default function Aurora({
         uThirdColor: DEFAULTS.uThirdColor,
         opacity: DEFAULTS.opacity,
         grainAmount: DEFAULTS.grainAmount,
-        vignette: DEFAULTS.vignette
+        vignette: DEFAULTS.vignette,
+        vignetteOpacity: DEFAULTS.vignetteOpacity
       })
       setDistortion({
         fadeSpeed: DEFAULTS.fadeSpeed,
@@ -164,7 +169,8 @@ export default function Aurora({
       uBlobIntensity: { value: 0.02 },
       uOpacity: { value: DEFAULTS.opacity },
       uGrainAmount: { value: DEFAULTS.grainAmount },
-      uVignette: { value: DEFAULTS.vignette }
+      uVignette: { value: DEFAULTS.vignette },
+      uVignetteOpacity: { value: DEFAULTS.vignetteOpacity }
     }),
     []
   )
@@ -185,8 +191,9 @@ export default function Aurora({
       materialRef.current.uniforms.uOpacity.value = opacityCtrl
       materialRef.current.uniforms.uGrainAmount.value = grainAmountCtrl
       materialRef.current.uniforms.uVignette.value = vignetteCtrl
+      materialRef.current.uniforms.uVignetteOpacity.value = vignetteOpacityCtrl
     }
-  }, [uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor, distortionRadiusCtrl, distortionStrengthCtrl, opacityCtrl, grainAmountCtrl, vignetteCtrl])
+  }, [uSpeed, uIntensity, uBlend, uSaturation, uScale, uVerticalOffset, uFirstColor, uSecondColor, uThirdColor, distortionRadiusCtrl, distortionStrengthCtrl, opacityCtrl, grainAmountCtrl, vignetteCtrl, vignetteOpacityCtrl])
 
   useEffect(() => {
     const getUVFromEvent = (event: MouseEvent): Vector2 | null => {

@@ -25,32 +25,24 @@ type DotGridProps = {
   dotSize?: number
   gap?: number
   baseColor?: string
+  baseOpacity?: number
   activeColor?: string
+  activeOpacity?: number
   proximity?: number
-  speedTrigger?: number
-  shockRadius?: number
-  shockStrength?: number
-  maxSpeed?: number
-  resistance?: number
-  returnDuration?: number
+  activeDuration?: number
   mouseInteraction?: boolean
-  opacity?: number
 }
 
 export default function DotGrid({
   dotSize = 4,
   gap = 19,
   baseColor = '#1a1a1a',
+  baseOpacity = 1.0,
   activeColor = '#ffffff',
+  activeOpacity = 1.0,
   proximity = 70,
-  speedTrigger = 100,
-  shockRadius = 100,
-  shockStrength = 9,
-  maxSpeed = 5000,
-  resistance = 650,
-  returnDuration = 1.6,
-  mouseInteraction = true,
-  opacity = 1.0
+  activeDuration = 1.0,
+  mouseInteraction = true
 }: DotGridProps) {
   const materialRef = useRef<RawShaderMaterial | null>(null)
   const { gl, size } = useThree()
@@ -68,22 +60,19 @@ export default function DotGrid({
   const targetMouseActive = useRef(0)
   const smoothMouseActive = useRef(0)
   const originalDprRef = useRef(gl.getPixelRatio())
+  const lastTapTime = useRef(0)
 
   const [
     {
       dotSize: dotSizeCtrl,
       gap: gapCtrl,
       baseColor: baseColorCtrl,
+      baseOpacity: baseOpacityCtrl,
       activeColor: activeColorCtrl,
+      activeOpacity: activeOpacityCtrl,
       proximity: proximityCtrl,
-      speedTrigger: speedTriggerCtrl,
-      shockRadius: shockRadiusCtrl,
-      shockStrength: shockStrengthCtrl,
-      maxSpeed: maxSpeedCtrl,
-      resistance: resistanceCtrl,
-      returnDuration: returnDurationCtrl,
+      activeDuration: activeDurationCtrl,
       mouseInteraction: mouseInteractionCtrl,
-      opacity: opacityCtrl,
       pixelRatio: pixelRatioCtrl
     },
     setControls
@@ -93,37 +82,29 @@ export default function DotGrid({
       dotSize: { value: dotSize, min: 4, max: 50, step: 1, label: 'Dot Size' },
       gap: { value: gap, min: 4, max: 100, step: 1, label: 'Gap' },
       baseColor: { value: baseColor, label: 'Base Color' },
+      baseOpacity: { value: baseOpacity, min: 0, max: 1, step: 0.01, label: 'Base Opacity' },
       activeColor: { value: activeColor, label: 'Active Color' },
+      activeOpacity: { value: activeOpacity, min: 0, max: 1, step: 0.01, label: 'Active Opacity' },
       proximity: { value: proximity, min: 50, max: 500, step: 10, label: 'Proximity' },
-      speedTrigger: { value: speedTrigger, min: 10, max: 500, step: 10, label: 'Speed Trigger' },
-      shockRadius: { value: shockRadius, min: 50, max: 500, step: 10, label: 'Shock Radius' },
-      shockStrength: { value: shockStrength, min: 1, max: 20, step: 0.5, label: 'Shock Strength' },
-      maxSpeed: { value: maxSpeed, min: 1000, max: 10000, step: 100, label: 'Max Speed' },
-      resistance: { value: resistance, min: 100, max: 2000, step: 50, label: 'Resistance' },
-      returnDuration: { value: returnDuration, min: 0.5, max: 5, step: 0.1, label: 'Return Duration' },
+      activeDuration: { value: activeDuration, min: 0.5, max: 5, step: 0.1, label: 'Active Duration' },
       mouseInteraction: { value: mouseInteraction, label: 'Mouse Interaction' },
-      opacity: { value: opacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
       pixelRatio: { value: DEFAULT_PIXEL_RATIO, min: 0.3, max: 2, step: 0.05, label: 'Render DPR' },
       'Reset DotGrid': button(() => {
         setControls({
           dotSize,
           gap,
           baseColor,
+          baseOpacity,
           activeColor,
+          activeOpacity,
           proximity,
-          speedTrigger,
-          shockRadius,
-          shockStrength,
-          maxSpeed,
-          resistance,
-          returnDuration,
+          activeDuration,
           mouseInteraction,
-          opacity,
           pixelRatio: DEFAULT_PIXEL_RATIO
         })
       })
     }),
-    [dotSize, gap, baseColor, activeColor, proximity, speedTrigger, shockRadius, shockStrength, maxSpeed, resistance, returnDuration, mouseInteraction, opacity]
+    [dotSize, gap, baseColor, baseOpacity, activeColor, activeOpacity, proximity, activeDuration, mouseInteraction]
   )
 
   const uniforms = useMemo(
@@ -134,16 +115,11 @@ export default function DotGrid({
       uDotSize: { value: dotSize },
       uGap: { value: gap },
       uBaseColor: { value: new Vector3(...Object.values(hexToRgb(baseColor))) },
+      uBaseOpacity: { value: baseOpacity },
       uActiveColor: { value: new Vector3(...Object.values(hexToRgb(activeColor))) },
+      uActiveOpacity: { value: activeOpacity },
       uProximity: { value: proximity },
-      uSpeedTrigger: { value: speedTrigger },
-      uShockRadius: { value: shockRadius },
-      uShockStrength: { value: shockStrength },
-      uMaxSpeed: { value: maxSpeed },
-      uResistance: { value: resistance },
-      uReturnDuration: { value: returnDuration },
-      uMouseActiveFactor: { value: 0 },
-      uOpacity: { value: opacity }
+      uMouseActiveFactor: { value: 0 }
     }),
     []
   )
@@ -180,30 +156,20 @@ export default function DotGrid({
     u.uGap.value = gapCtrl
     const baseRgb = hexToRgb(baseColorCtrl)
     u.uBaseColor.value.set(baseRgb.r, baseRgb.g, baseRgb.b)
+    u.uBaseOpacity.value = baseOpacityCtrl
     const activeRgb = hexToRgb(activeColorCtrl)
     u.uActiveColor.value.set(activeRgb.r, activeRgb.g, activeRgb.b)
+    u.uActiveOpacity.value = activeOpacityCtrl
     u.uProximity.value = proximityCtrl
-    u.uSpeedTrigger.value = speedTriggerCtrl
-    u.uShockRadius.value = shockRadiusCtrl
-    u.uShockStrength.value = shockStrengthCtrl
-    u.uMaxSpeed.value = maxSpeedCtrl
-    u.uResistance.value = resistanceCtrl
-    u.uReturnDuration.value = returnDurationCtrl
-    u.uOpacity.value = opacityCtrl
     materialRef.current.transparent = true
   }, [
     dotSizeCtrl,
     gapCtrl,
     baseColorCtrl,
+    baseOpacityCtrl,
     activeColorCtrl,
-    proximityCtrl,
-    speedTriggerCtrl,
-    shockRadiusCtrl,
-    shockStrengthCtrl,
-    maxSpeedCtrl,
-    resistanceCtrl,
-    returnDurationCtrl,
-    opacityCtrl
+    activeOpacityCtrl,
+    proximityCtrl
   ])
 
   useEffect(() => {
@@ -215,24 +181,27 @@ export default function DotGrid({
 
     const canvas = gl.domElement
 
-    const handlePointerMove = (event: PointerEvent) => {
+    const handlePointerDown = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect()
       const x = (event.clientX - rect.left) / rect.width
       const y = 1 - (event.clientY - rect.top) / rect.height
       targetMousePos.current.set(x, y)
       targetMouseActive.current = 1
+      lastTapTime.current = performance.now()
     }
 
-    const handlePointerLeave = () => {
+    const handlePointerUp = () => {
       targetMouseActive.current = 0
     }
 
-    canvas.addEventListener('pointermove', handlePointerMove)
-    canvas.addEventListener('pointerleave', handlePointerLeave)
+    canvas.addEventListener('pointerdown', handlePointerDown)
+    canvas.addEventListener('pointerup', handlePointerUp)
+    canvas.addEventListener('pointerleave', handlePointerUp)
 
     return () => {
-      canvas.removeEventListener('pointermove', handlePointerMove)
-      canvas.removeEventListener('pointerleave', handlePointerLeave)
+      canvas.removeEventListener('pointerdown', handlePointerDown)
+      canvas.removeEventListener('pointerup', handlePointerUp)
+      canvas.removeEventListener('pointerleave', handlePointerUp)
     }
   }, [gl, mouseInteractionCtrl])
 
@@ -242,9 +211,24 @@ export default function DotGrid({
 
     material.uniforms.uTime.value = state.clock.elapsedTime
 
-    const lerpFactor = 0.1
-    smoothMousePos.current.lerp(targetMousePos.current, lerpFactor)
-    smoothMouseActive.current += (targetMouseActive.current - smoothMouseActive.current) * lerpFactor
+    // Direct assignment for immediate effect at tap position
+    smoothMousePos.current.copy(targetMousePos.current)
+
+    // Calculate decay based on time since last tap
+    const currentTime = performance.now()
+    const timeSinceTap = (currentTime - lastTapTime.current) / 1000 // Convert to seconds
+
+    if (targetMouseActive.current > 0) {
+      // Tap is active, keep at full strength
+      smoothMouseActive.current = 1
+    } else if (timeSinceTap < activeDurationCtrl) {
+      // Decay over activeDuration seconds
+      const decay = 1 - timeSinceTap / activeDurationCtrl
+      smoothMouseActive.current = Math.max(0, decay)
+    } else {
+      // Effect has fully faded
+      smoothMouseActive.current = 0
+    }
 
     material.uniforms.uMouse.value.copy(smoothMousePos.current)
     material.uniforms.uMouseActiveFactor.value = smoothMouseActive.current
