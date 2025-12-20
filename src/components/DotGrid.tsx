@@ -31,6 +31,10 @@ type DotGridProps = {
   proximity?: number
   activeDuration?: number
   mouseInteraction?: boolean
+  shockRadius?: number
+  shockStrength?: number
+  shockSpeed?: number
+  shockDuration?: number
 }
 
 export default function DotGrid({
@@ -42,7 +46,11 @@ export default function DotGrid({
   activeOpacity = 1.0,
   proximity = 70,
   activeDuration = 1.0,
-  mouseInteraction = true
+  mouseInteraction = true,
+  shockRadius = 400,
+  shockStrength = 0.5,
+  shockSpeed = 1.2,
+  shockDuration = 2.0,
 }: DotGridProps) {
   const materialRef = useRef<RawShaderMaterial | null>(null)
   const { gl, size } = useThree()
@@ -61,6 +69,15 @@ export default function DotGrid({
   const smoothMouseActive = useRef(0)
   const originalDprRef = useRef(gl.getPixelRatio())
   const lastTapTime = useRef(0)
+  const shockDurationRef = useRef(shockDuration)
+
+  // Track active tap distortions
+  interface TapDistortion {
+    position: Vector2;
+    startTime: number;
+    strength: number;
+  }
+  const activeDistortionsRef = useRef<TapDistortion[]>([]);
 
   const [
     {
@@ -73,7 +90,11 @@ export default function DotGrid({
       proximity: proximityCtrl,
       activeDuration: activeDurationCtrl,
       mouseInteraction: mouseInteractionCtrl,
-      pixelRatio: pixelRatioCtrl
+      shockRadius: shockRadiusCtrl,
+      shockStrength: shockStrengthCtrl,
+      shockSpeed: shockSpeedCtrl,
+      shockDuration: shockDurationCtrl,
+      pixelRatio: pixelRatioCtrl,
     },
     setControls
   ] = useControls(
@@ -88,6 +109,10 @@ export default function DotGrid({
       proximity: { value: proximity, min: 50, max: 500, step: 10, label: 'Proximity' },
       activeDuration: { value: activeDuration, min: 0.5, max: 5, step: 0.1, label: 'Active Duration' },
       mouseInteraction: { value: mouseInteraction, label: 'Mouse Interaction' },
+      shockRadius: { value: shockRadius, min: 100, max: 1000, step: 10, label: 'Shock Radius' },
+      shockStrength: { value: shockStrength, min: 0, max: 5, step: 0.05, label: 'Shock Strength' },
+      shockSpeed: { value: shockSpeed, min: 0.1, max: 3, step: 0.1, label: 'Shock Speed' },
+      shockDuration: { value: shockDuration, min: 0.5, max: 5, step: 0.1, label: 'Shock Duration' },
       pixelRatio: { value: DEFAULT_PIXEL_RATIO, min: 0.3, max: 2, step: 0.05, label: 'Render DPR' },
       'Reset DotGrid': button(() => {
         setControls({
@@ -100,11 +125,15 @@ export default function DotGrid({
           proximity,
           activeDuration,
           mouseInteraction,
+          shockRadius,
+          shockStrength,
+          shockSpeed,
+          shockDuration,
           pixelRatio: DEFAULT_PIXEL_RATIO
         })
       })
     }),
-    [dotSize, gap, baseColor, baseOpacity, activeColor, activeOpacity, proximity, activeDuration, mouseInteraction]
+    [dotSize, gap, baseColor, baseOpacity, activeColor, activeOpacity, proximity, activeDuration, mouseInteraction, shockRadius, shockStrength, shockSpeed, shockDuration]
   )
 
   const uniforms = useMemo(
@@ -119,7 +148,17 @@ export default function DotGrid({
       uActiveColor: { value: new Vector3(...Object.values(hexToRgb(activeColor))) },
       uActiveOpacity: { value: activeOpacity },
       uProximity: { value: proximity },
-      uMouseActiveFactor: { value: 0 }
+      uShockRadius: { value: shockRadius },
+      uShockStrength: { value: shockStrength },
+      uShockSpeed: { value: shockSpeed },
+      uMouseActiveFactor: { value: 0 },
+      // Tap distortion uniforms (support up to 10 simultaneous taps)
+      uTapPositions: {
+        value: new Array(10).fill(null).map(() => new Vector2(0, 0)),
+      },
+      uTapStrengths: { value: new Array(10).fill(0) },
+      uTapTimes: { value: new Array(10).fill(0) },
+      uNumTaps: { value: 0 },
     }),
     []
   )
@@ -161,6 +200,10 @@ export default function DotGrid({
     u.uActiveColor.value.set(activeRgb.r, activeRgb.g, activeRgb.b)
     u.uActiveOpacity.value = activeOpacityCtrl
     u.uProximity.value = proximityCtrl
+    u.uShockRadius.value = shockRadiusCtrl
+    u.uShockStrength.value = shockStrengthCtrl
+    u.uShockSpeed.value = shockSpeedCtrl
+    shockDurationRef.current = shockDurationCtrl
     materialRef.current.transparent = true
   }, [
     dotSizeCtrl,
@@ -169,7 +212,12 @@ export default function DotGrid({
     baseOpacityCtrl,
     activeColorCtrl,
     activeOpacityCtrl,
-    proximityCtrl
+    proximityCtrl,
+    shockRadiusCtrl,
+    shockStrengthCtrl,
+    shockSpeedCtrl,
+    shockDurationCtrl,
+    activeDurationCtrl,
   ])
 
   useEffect(() => {
@@ -188,6 +236,19 @@ export default function DotGrid({
       targetMousePos.current.set(x, y)
       targetMouseActive.current = 1
       lastTapTime.current = performance.now()
+
+      // Create a new tap distortion
+      const newDistortion: TapDistortion = {
+        position: new Vector2(x, y),
+        startTime: performance.now() / 1000, // Convert to seconds
+        strength: shockStrengthCtrl,
+      };
+      activeDistortionsRef.current.push(newDistortion);
+
+      // Limit to 10 active distortions
+      if (activeDistortionsRef.current.length > 10) {
+        activeDistortionsRef.current.shift();
+      }
     }
 
     const handlePointerUp = () => {
@@ -203,7 +264,7 @@ export default function DotGrid({
       canvas.removeEventListener('pointerup', handlePointerUp)
       canvas.removeEventListener('pointerleave', handlePointerUp)
     }
-  }, [gl, mouseInteractionCtrl])
+  }, [gl, mouseInteractionCtrl, shockStrengthCtrl])
 
   useFrame((state) => {
     const material = materialRef.current
@@ -215,8 +276,8 @@ export default function DotGrid({
     smoothMousePos.current.copy(targetMousePos.current)
 
     // Calculate decay based on time since last tap
-    const currentTime = performance.now()
-    const timeSinceTap = (currentTime - lastTapTime.current) / 1000 // Convert to seconds
+    const now = performance.now();
+    const timeSinceTap = (now - lastTapTime.current) / 1000; // Convert to seconds
 
     if (targetMouseActive.current > 0) {
       // Tap is active, keep at full strength
@@ -232,6 +293,59 @@ export default function DotGrid({
 
     material.uniforms.uMouse.value.copy(smoothMousePos.current)
     material.uniforms.uMouseActiveFactor.value = smoothMouseActive.current
+
+    // Update tap distortion uniforms
+    const currentTime = state.clock.elapsedTime;
+
+    // Remove expired distortions
+    activeDistortionsRef.current = activeDistortionsRef.current.filter(
+      tap => currentTime - tap.startTime < shockDurationRef.current
+    );
+
+    // Update uniforms with active distortions
+    const activeTaps = activeDistortionsRef.current;
+    material.uniforms.uNumTaps.value = Math.min(activeTaps.length, 10);
+
+    for (let i = 0; i < 10; i++) {
+      if (i < activeTaps.length) {
+        const tap = activeTaps[i];
+        const elapsed = currentTime - tap.startTime;
+        const progress = Math.min(elapsed / shockDurationRef.current, 1.0);
+
+        // Smooth onset and elastic ease-out
+        const onsetDuration = 0.15; // 150ms for smooth onset
+        const smoothEase = (t: number) => {
+          if (t < onsetDuration / shockDurationRef.current) {
+            // Smooth onset phase - ease in cubic
+            const onsetProgress = t / (onsetDuration / shockDurationRef.current);
+            return onsetProgress * onsetProgress * (3 - 2 * onsetProgress);
+          } else {
+            // Elastic ease-out for return
+            const returnProgress =
+              (t - onsetDuration / shockDurationRef.current) /
+              (1 - onsetDuration / shockDurationRef.current);
+            const c4 = (2 * Math.PI) / 3;
+            const elasticOut =
+              returnProgress === 0
+                ? 0
+                : returnProgress === 1
+                  ? 1
+                  : Math.pow(2, -10 * returnProgress) *
+                      Math.sin((returnProgress * 10 - 0.75) * c4) +
+                    1;
+            return 1 - elasticOut;
+          }
+        };
+
+        const strength = tap.strength * smoothEase(progress);
+
+        material.uniforms.uTapPositions.value[i].copy(tap.position);
+        material.uniforms.uTapStrengths.value[i] = strength;
+        material.uniforms.uTapTimes.value[i] = elapsed;
+      } else {
+        material.uniforms.uTapStrengths.value[i] = 0;
+      }
+    }
 
     const ratio = state.gl.getPixelRatio()
     const width = state.size.width * ratio
