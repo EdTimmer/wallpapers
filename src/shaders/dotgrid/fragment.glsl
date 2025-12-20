@@ -102,7 +102,9 @@ vec2 calculateDisplacement(vec2 dotCenter) {
                 }
                 
                 // Calculate final displacement
-                float displacement = strength * uShockStrength * waveIntensity * decay * elasticMult * 0.08;
+                // Scale by resolution to maintain consistent visual effect across screen sizes
+                float resolutionScale = min(uResolution.x, uResolution.y) / 1080.0;
+                float displacement = strength * uShockStrength * waveIntensity * decay * elasticMult * 0.12 * resolutionScale;
                 totalDisplacement += direction * directionMult * displacement;
             }
         }

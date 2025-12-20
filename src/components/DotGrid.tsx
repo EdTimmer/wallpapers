@@ -54,11 +54,11 @@ export default function DotGrid({
 }: DotGridProps) {
   const materialRef = useRef<RawShaderMaterial | null>(null)
   const { gl, size } = useThree()
-  const dpr = gl.getPixelRatio()
+  // Initialize with a safe default, will be updated in useEffect
   const resolutionRef = useRef(
     new Vector3(
-      size.width * dpr,
-      size.height * dpr,
+      size.width,
+      size.height,
       size.width / Math.max(size.height, 1)
     )
   )
@@ -67,7 +67,7 @@ export default function DotGrid({
   const smoothMousePos = useRef(new Vector2(0.5, 0.5))
   const targetMouseActive = useRef(0)
   const smoothMouseActive = useRef(0)
-  const originalDprRef = useRef(gl.getPixelRatio())
+  const originalDprRef = useRef(0) // Will be set on mount
   const lastTapTime = useRef(0)
   const shockDurationRef = useRef(shockDuration)
 
@@ -163,17 +163,10 @@ export default function DotGrid({
     []
   )
 
+  // Initialize DPR and resolution on mount
   useEffect(() => {
-    const ratio = gl.getPixelRatio()
-    resolutionRef.current.set(
-      size.width * ratio,
-      size.height * ratio,
-      size.width / Math.max(size.height, 1)
-    )
-    if (materialRef.current) {
-      materialRef.current.uniforms.uResolution.value = resolutionRef.current
-    }
-  }, [gl, pixelRatioCtrl, size.height, size.width])
+    originalDprRef.current = gl.getPixelRatio()
+  }, [gl])
 
   useEffect(() => {
     const targetDpr = Math.min(originalDprRef.current, pixelRatioCtrl)
@@ -352,6 +345,7 @@ export default function DotGrid({
     const height = state.size.height * ratio
     if (resolutionRef.current.x !== width || resolutionRef.current.y !== height) {
       resolutionRef.current.set(width, height, width / Math.max(height, 1))
+      material.uniforms.uResolution.value = resolutionRef.current
     }
   })
 

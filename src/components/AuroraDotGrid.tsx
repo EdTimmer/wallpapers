@@ -34,13 +34,13 @@ export default function AuroraDotGrid() {
 					gap={19}
 					baseColor='#1a1a1a'
 					activeColor='#ffffff'
-					proximity={70}
+					proximity={160}
 					activeDuration={1.0}
 					mouseInteraction={true}
 					activeOpacity={1.0}
 					baseOpacity={1.0}
 					shockRadius={200}
-					shockStrength={2.0}
+					shockStrength={1.8}
 					shockSpeed={2.6}
 				/>
 			</group>
