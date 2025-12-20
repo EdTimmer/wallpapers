@@ -14,13 +14,15 @@ interface SquaresProps {
   speed?: number;
   borderColor?: string;
   squareSize?: number;
+  opacity?: number;
 }
 
 export default function Squares({
   direction = 'right',
   speed = 1,
   borderColor = '#999999',
-  squareSize = 40
+  squareSize = 40,
+  opacity = 1.0
 }: SquaresProps) {
   const materialRef = useRef<RawShaderMaterial | null>(null);
   const { size, gl } = useThree();
@@ -35,7 +37,8 @@ export default function Squares({
       direction: directionCtrl,
       squareSpeed: speedCtrl,
       borderColor: borderColorCtrl,
-      squareSize: squareSizeCtrl
+      squareSize: squareSizeCtrl,
+      opacity: opacityCtrl
     },
     setControls
   ] = useControls(
@@ -64,16 +67,24 @@ export default function Squares({
         step: 5,
         label: 'Square Size'
       },
+      opacity: {
+        value: opacity,
+        min: 0,
+        max: 1,
+        step: 0.01,
+        label: 'Opacity'
+      },
       'Reset Squares': button(() => {
         setControls({
           direction,
           squareSpeed: speed,
           borderColor,
-          squareSize
+          squareSize,
+          opacity
         });
       })
     }),
-    [direction, speed, borderColor, squareSize]
+    [direction, speed, borderColor, squareSize, opacity]
   );
 
   // Convert hex color to RGB
@@ -92,7 +103,8 @@ export default function Squares({
       uSquareSize: { value: 40 },
       uBorderColor: { value: new Color(0.6, 0.6, 0.6) },
       uGridOffset: { value: new Vector2(0, 0) },
-      uPixelRatio: { value: window.devicePixelRatio || 1.0 }
+      uPixelRatio: { value: window.devicePixelRatio || 1.0 },
+      uOpacity: { value: 1.0 }
     }),
     []
   );
@@ -116,7 +128,8 @@ export default function Squares({
     const { uniforms: u } = materialRef.current;
     u.uSquareSize.value = squareSizeCtrl;
     u.uBorderColor.value.copy(borderColorRGB);
-  }, [squareSizeCtrl, borderColorRGB]);
+    u.uOpacity.value = opacityCtrl;
+  }, [squareSizeCtrl, borderColorRGB, opacityCtrl]);
 
   useFrame((state, delta) => {
     if (!materialRef.current) return;

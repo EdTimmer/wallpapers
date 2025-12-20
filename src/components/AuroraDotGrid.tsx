@@ -40,7 +40,8 @@ export default function AuroraDotGrid() {
 					activeOpacity={1.0}
 					baseOpacity={1.0}
 					shockRadius={200}
-					shockStrength={2}
+					shockStrength={2.0}
+					shockSpeed={2.6}
 				/>
 			</group>
 		</group>

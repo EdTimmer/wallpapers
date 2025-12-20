@@ -29,6 +29,8 @@ type GalaxyProps = {
   autoCenterRepulsion?: number
   transparent?: boolean
   opacity?: number
+  vignette?: number
+  vignetteOpacity?: number
 }
 
 export default function Galaxy({
@@ -48,7 +50,9 @@ export default function Galaxy({
   rotationSpeed = 0.1,
   autoCenterRepulsion = 0,
   transparent = true,
-  opacity = 1.0
+  opacity = 1.0,
+  vignette = 0.0,
+  vignetteOpacity = 1.0
 }: GalaxyProps) {
   const materialRef = useRef<RawShaderMaterial | null>(null)
   const { gl, size } = useThree()
@@ -88,7 +92,9 @@ export default function Galaxy({
       autoCenterRepulsion: autoCenterRepulsionCtrl,
       transparent: transparentCtrl,
       opacity: opacityCtrl,
-      pixelRatio: pixelRatioCtrl
+      pixelRatio: pixelRatioCtrl,
+      vignette: vignetteCtrl,
+      vignetteOpacity: vignetteOpacityCtrl
     },
     setControls
   ] = useControls(
@@ -113,6 +119,8 @@ export default function Galaxy({
       autoCenterRepulsion: { value: autoCenterRepulsion, min: 0, max: 5, step: 0.1, label: 'Auto Center Repulsion' },
       transparent: { value: transparent, label: 'Transparent Background' },
       opacity: { value: opacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
+      vignette: { value: vignette, min: 0, max: 2, step: 0.05, label: 'Vignette' },
+      vignetteOpacity: { value: vignetteOpacity, min: 0, max: 1, step: 0.01, label: 'Vignette Opacity' },
       pixelRatio: { value: DEFAULT_PIXEL_RATIO, min: 0.3, max: 2, step: 0.05, label: 'Render DPR' },
       'Reset Galaxy': button(() => {
         setControls({
@@ -135,6 +143,8 @@ export default function Galaxy({
           autoCenterRepulsion,
           transparent,
           opacity,
+          vignette,
+          vignetteOpacity,
           pixelRatio: DEFAULT_PIXEL_RATIO
         })
       })
@@ -158,7 +168,9 @@ export default function Galaxy({
       rotationSpeed,
       autoCenterRepulsion,
       transparent,
-      opacity
+      opacity,
+      vignette,
+      vignetteOpacity
     ]
   )
 
@@ -182,7 +194,9 @@ export default function Galaxy({
       uMouseActiveFactor: { value: 0 },
       uAutoCenterRepulsion: { value: 0 },
       uTransparent: { value: true },
-      uOpacity: { value: 1.0 }
+      uOpacity: { value: 1.0 },
+      uVignette: { value: 0.0 },
+      uVignetteOpacity: { value: 1.0 }
     }),
     []
   )
@@ -226,6 +240,8 @@ export default function Galaxy({
     u.uAutoCenterRepulsion.value = autoCenterRepulsionCtrl
     u.uTransparent.value = transparentCtrl
     u.uOpacity.value = opacityCtrl
+    u.uVignette.value = vignetteCtrl
+    u.uVignetteOpacity.value = vignetteOpacityCtrl
     materialRef.current.transparent = transparentCtrl
   }, [
     focalX,
@@ -243,7 +259,9 @@ export default function Galaxy({
     repulsionStrengthCtrl,
     autoCenterRepulsionCtrl,
     transparentCtrl,
-    opacityCtrl
+    opacityCtrl,
+    vignetteCtrl,
+    vignetteOpacityCtrl
   ])
 
   useEffect(() => {

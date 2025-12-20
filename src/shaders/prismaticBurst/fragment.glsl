@@ -17,6 +17,8 @@ uniform sampler2D uGradient;
 uniform float uNoiseAmount;
 uniform int   uRayCount;
 uniform float uOpacity;
+uniform float uVignette;
+uniform float uVignetteOpacity;
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -161,6 +163,15 @@ void main(){
 
     col *= edgeFade(frag, uResolution, uOffset);
     col *= uIntensity;
+
+    // Apply vignette effect with opacity control
+    if (uVignette > 0.0) {
+        vec2 center = vUv - vec2(0.5);
+        float dist = length(center);
+        float vignetteFactor = smoothstep(0.8, 0.2, dist * uVignette);
+        // Mix between original color and darkened color based on vignette opacity
+        col = mix(col, col * vignetteFactor, uVignetteOpacity);
+    }
 
     fragColor = vec4(clamp(col, 0.0, 1.0), uOpacity);
 }

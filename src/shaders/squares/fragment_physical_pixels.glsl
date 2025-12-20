@@ -5,6 +5,7 @@ uniform float uSquareSize;
 uniform vec3 uBorderColor;
 uniform vec2 uGridOffset;
 uniform float uPixelRatio;
+uniform float uOpacity;
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -37,7 +38,7 @@ void main() {
     
     // Mix between border and transparent based on line value
     vec3 color = mix(uBorderColor, vec3(0.0), line);
-    float alpha = mix(1.0, 0.0, line);
+    float alpha = mix(1.0, 0.0, line) * uOpacity;
     
     fragColor = vec4(color, alpha);
 }

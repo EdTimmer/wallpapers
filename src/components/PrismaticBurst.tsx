@@ -19,6 +19,8 @@ type PrismaticBurstProps = {
   rayCount?: number
   opacity?: number
   pixelRatio?: number
+  vignette?: number
+  vignetteOpacity?: number
 }
 
 type ColorObjectValue = {
@@ -47,7 +49,9 @@ const DEFAULTS = {
   uNoiseAmount: 0.05,
   uRayCount: 0,
   uOpacity: 1.0,
-  pixelRatio: 0.5
+  pixelRatio: 0.5,
+  uVignette: 0.0,
+  uVignetteOpacity: 1.0
 } as const
 
 // Helper function to convert hex color to RGB array
@@ -111,7 +115,9 @@ export default function PrismaticBurst({
   noiseAmount = DEFAULTS.uNoiseAmount,
   rayCount = DEFAULTS.uRayCount,
   opacity = DEFAULTS.uOpacity,
-  pixelRatio = DEFAULTS.pixelRatio
+  pixelRatio = DEFAULTS.pixelRatio,
+  vignette = DEFAULTS.uVignette,
+  vignetteOpacity = DEFAULTS.uVignetteOpacity
 }: PrismaticBurstProps = {}) {
   const materialRef = useRef<RawShaderMaterial>(null!)
   const mouseRef = useRef<Vector2>(new Vector2(0.5, 0.5))
@@ -217,7 +223,7 @@ export default function PrismaticBurst({
     return []
   }, [colors])
 
-  const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, uOpacity, pixelRatio: pixelRatioCtrl }, setMain] = useControls('Prismatic Burst', () => ({
+  const [{ uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, uOpacity, pixelRatio: pixelRatioCtrl, vignette: vignetteCtrl, vignetteOpacity: vignetteOpacityCtrl }, setMain] = useControls('Prismatic Burst', () => ({
     uSpeed: { value: speed, min: 0, max: 3, step: 0.01, label: 'Speed' },
     uIntensity: { value: intensity, min: 0, max: 5, step: 0.1, label: 'Intensity' },
     uAnimType: { 
@@ -229,6 +235,8 @@ export default function PrismaticBurst({
     uNoiseAmount: { value: noiseAmount, min: 0, max: 1, step: 0.01, label: 'Noise' },
     uRayCount: { value: rayCount, min: 0, max: 24, step: 1, label: 'Ray Count' },
     uOpacity: { value: opacity, min: 0, max: 1, step: 0.01, label: 'Opacity' },
+    vignette: { value: vignette, min: 0, max: 2, step: 0.05, label: 'Vignette' },
+    vignetteOpacity: { value: vignetteOpacity, min: 0, max: 1, step: 0.01, label: 'Vignette Opacity' },
     pixelRatio: { value: pixelRatio, min: 0.5, max: 2, step: 0.05, label: 'Render DPR' },
     'Reset All': button(() => {
       setMain({
@@ -239,6 +247,8 @@ export default function PrismaticBurst({
         uNoiseAmount: noiseAmount,
         uRayCount: rayCount,
         uOpacity: opacity,
+        vignette: vignette,
+        vignetteOpacity: vignetteOpacity,
         pixelRatio: pixelRatio
       })
       // Reset colors using Leva store - set each color individually
@@ -256,7 +266,9 @@ export default function PrismaticBurst({
     rayCount,
     opacity,
     pixelRatio,
-    colors
+    colors,
+    vignette,
+    vignetteOpacity
   ])
 
   useControls('Diagnostics', () => ({
@@ -307,9 +319,11 @@ export default function PrismaticBurst({
       uRayCount: { value: rayCount },
       uOpacity: { value: opacity },
       uColorCount: { value: 0 }, // Start with 0 (spectral mode), updated in useFrame
-      uGradient: { value: gradientTexture }
+      uGradient: { value: gradientTexture },
+      uVignette: { value: vignette },
+      uVignetteOpacity: { value: vignetteOpacity }
     }),
-    [gradientTexture, speed, intensity, animType, distort, noiseAmount, rayCount, opacity]
+    [gradientTexture, speed, intensity, animType, distort, noiseAmount, rayCount, opacity, vignette, vignetteOpacity]
   )
 
   useEffect(() => {
@@ -326,8 +340,10 @@ export default function PrismaticBurst({
       materialRef.current.uniforms.uNoiseAmount.value = uNoiseAmount
       materialRef.current.uniforms.uRayCount.value = uRayCount
       materialRef.current.uniforms.uOpacity.value = uOpacity
+      materialRef.current.uniforms.uVignette.value = vignetteCtrl
+      materialRef.current.uniforms.uVignetteOpacity.value = vignetteOpacityCtrl
     }
-  }, [uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, uOpacity])
+  }, [uSpeed, uIntensity, uAnimType, uDistort, uNoiseAmount, uRayCount, uOpacity, vignetteCtrl, vignetteOpacityCtrl])
 
   useEffect(() => {
     const cappedDpr = Math.min(gl.getPixelRatio(), 2)

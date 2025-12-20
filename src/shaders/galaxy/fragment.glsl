@@ -23,6 +23,8 @@ uniform float uMouseActiveFactor;
 uniform float uAutoCenterRepulsion;
 uniform bool uTransparent;
 uniform float uOpacity;
+uniform float uVignette;
+uniform float uVignetteOpacity;
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -146,6 +148,15 @@ void main() {
         float scale = mix(20.0 * uDensity, 0.5 * uDensity, depth);
         float fade = depth * smoothstep(1.0, 0.9, depth);
         col += StarLayer(uv * scale + i * 453.32) * fade;
+    }
+
+    // Apply vignette effect with opacity control
+    if (uVignette > 0.0) {
+        vec2 center = vUv - vec2(0.5);
+        float dist = length(center);
+        float vignetteFactor = smoothstep(0.8, 0.2, dist * uVignette);
+        // Mix between original color and darkened color based on vignette opacity
+        col = mix(col, col * vignetteFactor, uVignetteOpacity);
     }
 
     if (uTransparent) {
